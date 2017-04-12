@@ -8,11 +8,11 @@
 class Scene
 {
 private:
-	std::unique_ptr<World> world;
+	std::unique_ptr<World> world_;
 
 public:
-	Scene() : world(std::make_unique<DefaultWorld>()) { std::cout << "Creating scene";  }
-	~Scene() { std::cout << "Deleting scene"; }
+	Scene() : world_(std::make_unique<DefaultWorld>()) { }
+	~Scene() { }
 
-	World& getWorld() { return *world; }
+	World& getWorld() { return *world_; }
 };

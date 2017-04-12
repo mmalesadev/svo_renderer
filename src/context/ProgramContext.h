@@ -12,13 +12,13 @@
 class ProgramContext
 {
 private:
-	GLFWwindow * window;
-	SceneManager sceneManager;
+	GLFWwindow * window_;
+	SceneManager sceneManager_;
 
-	std::string windowTitle;
-	int FPScount = 0;
+	std::string windowTitle_;
+	int FPScount_ = 0;
 
-	std::vector<System> systems;
+	std::vector<System> systems_;
 	
 	static void errorCallback(int error, const char * description);
 

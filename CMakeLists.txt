@@ -9,6 +9,8 @@ set(TARGET_NAME svo-renderer)
 ### Source information
 set(ROOT_SRC_DIR "src")
 
+# This function adds directory to the variable set below.
+# Unset if you want to use it again
 set(ALL_SRCS)
 function(add_directory directory)
 	include_directories(${CMAKE_SOURCE_DIR}/${directory})
@@ -23,6 +25,8 @@ add_directory("${ROOT_SRC_DIR}/systems")
 add_directory("${ROOT_SRC_DIR}/scenes")
 add_directory("${ROOT_SRC_DIR}/entities")
 add_directory("${ROOT_SRC_DIR}/components")
+add_directory("${ROOT_SRC_DIR}/world")
+add_directory("${ROOT_SRC_DIR}/context")
 
 ### Libraries and headers
 set(LIB_DIR "lib")
@@ -67,6 +71,16 @@ else()
 	message(SEND_ERROR "GLM was not found.")
 endif()
 
+# Catch
+set(DEFAULT_CATCH_DIR "catch-1.9.1")
+find_path(CATCH_HEADERS_DIR catch.hpp ${LIB_DIR}/${DEFAULT_CATCH_DIR})
+if(CATCH_HEADERS_DIR)
+	include_directories( ${CATCH_HEADERS_DIR} )
+else()
+	message(SEND_ERROR "Catch was not found.")
+endif()
+
+
 ### Link target
 add_executable(${TARGET_NAME} ${ALL_SRCS})
 target_link_libraries(${TARGET_NAME} ${LIBS})
@@ -75,10 +89,29 @@ if(MSVC)
 	### Setting target as startup project
 	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${TARGET_NAME})
 
-	### Copying DLL target
+	### Copying DLLs target
 	file(GLOB DLLS ${CMAKE_SOURCE_DIR}/dll/${TARGET_SYSTEM}/*.dll)
 	add_custom_target(CopyDlls ALL DEPENDS ${CMAKE_BINARY_DIR}/unexisting_file.h)
 	foreach(DLL ${DLLS})	
 	  add_custom_command(TARGET CopyDlls POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${DLL} ${CMAKE_BINARY_DIR}/$<CONFIGURATION>/)
 	endforeach()
 endif()
+
+### TEST PROJECT
+project(svo-renderer-tests)
+set(TESTS_TARGET_NAME svo-renderer-tests)
+
+# Tests dir
+set(ROOT_TESTS_DIR "test")
+
+unset(ALL_SRCS)
+add_directory(${ROOT_TESTS_DIR})
+add_directory("${ROOT_SRC_DIR}/systems")
+add_directory("${ROOT_SRC_DIR}/scenes")
+add_directory("${ROOT_SRC_DIR}/entities")
+add_directory("${ROOT_SRC_DIR}/components")
+add_directory("${ROOT_SRC_DIR}/world")
+add_directory("${ROOT_SRC_DIR}/context")
+
+add_executable(${TESTS_TARGET_NAME} ${ALL_SRCS})
+target_link_libraries(${TESTS_TARGET_NAME} ${LIBS})

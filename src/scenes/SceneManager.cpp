@@ -2,19 +2,19 @@
 
 void SceneManager::loadScene(std::string sceneName)
 {
-	auto scene = scenes.find(sceneName);
-	if (scene == scenes.end())
+	auto scene = scenes_.find(sceneName);
+	if (scene == scenes_.end())
 	{
-		scenes[sceneName] = std::make_unique<Scene>();
+		scenes_[sceneName] = std::make_unique<Scene>();
 	}
 }
 
 void SceneManager::activateScene(std::string sceneName)
 {
-	auto scene = scenes.find(sceneName);
-	if(scene != scenes.end())
+	auto scene = scenes_.find(sceneName);
+	if(scene != scenes_.end())
 	{
-		activeScene = scene->second.get();
+		activeScene_ = scene->second.get();
 	}
 	else
 	{

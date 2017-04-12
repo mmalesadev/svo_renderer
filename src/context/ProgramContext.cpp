@@ -6,6 +6,7 @@
 ProgramContext::ProgramContext()
 {
 	glfwSetErrorCallback( (GLFWerrorfun)errorCallback );
+	std::string * a = new std::string();
 }
 
 ProgramContext::~ProgramContext()
@@ -28,22 +29,22 @@ void ProgramContext::init()
 
 	GLFWmonitor * monitor = glfwGetPrimaryMonitor();
 	const GLFWvidmode * desktop = glfwGetVideoMode(monitor);
-	window = glfwCreateWindow(desktop->width, desktop->height, windowTitle.c_str(), nullptr, nullptr);
+	window_ = glfwCreateWindow(desktop->width, desktop->height, windowTitle_.c_str(), nullptr, nullptr);
 
-	glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
-	glfwMakeContextCurrent(window);
+	glfwSetInputMode(window_, GLFW_STICKY_KEYS, GLFW_TRUE);
+	glfwMakeContextCurrent(window_);
 	glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-	glfwSetCursorPos(window, desktop->width / 2, desktop->height / 2);
+	glfwSetCursorPos(window_, desktop->width / 2, desktop->height / 2);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_DEPTH_TEST);
 	glClearDepth(1.0);
 	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+	glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
 	GLenum glewErr = glewInit();
 	if (glewErr != GLEW_OK)
@@ -51,8 +52,8 @@ void ProgramContext::init()
 		std::cout << "Error initializing GLEW: " << glewGetErrorString(glewErr) << std::endl;
 	}
 
-	sceneManager.loadScene("default");
-	sceneManager.activateScene("default");
+	sceneManager_.loadScene("default");
+	sceneManager_.activateScene("default");
 }
 
 void ProgramContext::run()
@@ -68,22 +69,23 @@ void ProgramContext::run()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Update the systems
-		for (System& system : systems) system.update(sceneManager.getActiveScene()->getWorld());
+		for (System& system : systems_) system.update(sceneManager_.getActiveScene()->getWorld());
+
 		//screen->update(deltaTime);
 
 		//screen->render();
 
-		++FPScount;
+		++FPScount_;
 		if (currentTime - fpsLastTime >= 1)
 		{
 			//screen->FPScount = FPScount;
-			std::cout << "FPS: " << FPScount << std::endl;
-			FPScount = 0;
+			std::cout << "FPS: " << FPScount_ << std::endl;
+			FPScount_ = 0;
 			fpsLastTime = currentTime;
 		}
 		lastTime = currentTime;
 
-		glfwSwapBuffers(window);
+		glfwSwapBuffers(window_);
 		glfwPollEvents();
-	} while (!glfwWindowShouldClose(window));
+	} while (!glfwWindowShouldClose(window_));
 }

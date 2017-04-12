@@ -6,12 +6,12 @@
 class SceneManager
 {
 private:
-	std::map<std::string, std::unique_ptr<Scene>> scenes;
-	Scene* activeScene;
+	std::map<std::string, std::unique_ptr<Scene>> scenes_;
+	Scene* activeScene_;
 
 public:
 	void loadScene(std::string sceneName);
 	void activateScene(std::string sceneName);
 
-	Scene* getActiveScene() const { return activeScene; }
+	Scene* getActiveScene() const { return activeScene_; }
 };
