@@ -32,7 +32,11 @@ add_directory("${ROOT_SRC_DIR}/context")
 set(LIB_DIR "lib")
 
 if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-	set( TARGET_SYSTEM "win64" )
+	if( WIN32 )
+		set( TARGET_SYSTEM "win64" )
+	elseif( UNIX )
+		set( TARGET_SYSTEM "linux64" )
+	endif()
 endif()
 
 # OpenGL
@@ -40,10 +44,11 @@ find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
 set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
 
+
 # GLEW
 set(DEFAULT_GLEW_DIR "glew-2.0.0")
 find_path(GLEW_HEADERS_DIR GL/glew.h ${LIB_DIR}/${DEFAULT_GLEW_DIR}/include)
-find_library(GLEW_LIB glew32 ${LIB_DIR}/${DEFAULT_GLEW_DIR}/${TARGET_SYSTEM})
+find_library(GLEW_LIB NAMES glew32 libGLEW.a PATHS ${LIB_DIR}/${DEFAULT_GLEW_DIR}/${TARGET_SYSTEM})
 if(GLEW_HEADERS_DIR AND GLEW_LIB)
 	set(LIBS ${LIBS} ${GLEW_LIB})
 	include_directories( ${GLEW_HEADERS_DIR} )
@@ -54,7 +59,7 @@ endif()
 # GLFW
 set(DEFAULT_GLFW_DIR "glfw-3.2.1")
 find_path(GLFW_HEADERS_DIR GLFW/glfw3.h ${LIB_DIR}/${DEFAULT_GLFW_DIR}/include)
-find_library(GLFW_LIB glfw3 ${LIB_DIR}/${DEFAULT_GLFW_DIR}/${TARGET_SYSTEM})
+find_library(GLFW_LIB NAMES glfw3 libglfw3.a PATHS ${LIB_DIR}/${DEFAULT_GLFW_DIR}/${TARGET_SYSTEM})
 if(GLFW_HEADERS_DIR AND GLFW_LIB)
 	set(LIBS ${LIBS} ${GLFW_LIB})
 	include_directories( ${GLFW_HEADERS_DIR} )
@@ -83,7 +88,11 @@ endif()
 
 ### Link target
 add_executable(${TARGET_NAME} ${ALL_SRCS})
-target_link_libraries(${TARGET_NAME} ${LIBS})
+set(LINKER_FLAGS)
+if(UNIX)
+	set(LINKER_FLAGS ${LINKER_FLAGS} "-ldl -lpthread -lX11 -lXrandr -lXinerama -lXxf86vm -lXcursor")
+endif()
+target_link_libraries(${TARGET_NAME} ${LIBS} ${LINKER_FLAGS})
 
 if(MSVC)
 	### Setting target as startup project
@@ -114,4 +123,4 @@ add_directory("${ROOT_SRC_DIR}/world")
 add_directory("${ROOT_SRC_DIR}/context")
 
 add_executable(${TESTS_TARGET_NAME} ${ALL_SRCS})
-target_link_libraries(${TESTS_TARGET_NAME} ${LIBS})
+target_link_libraries(${TESTS_TARGET_NAME} ${LIBS} ${LINKER_FLAGS})

@@ -1,3 +1,4 @@
+#ifdef _WIN32
 #include <catch.hpp>
 #include <crtdbg.h>
 #include "ProgramContext.h"
@@ -28,3 +29,5 @@ TEST_CASE( "Initializing whole program" )
 	ProgramContext programContext;
 	programContext.init();
 }
+
+#endif
