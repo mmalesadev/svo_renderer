@@ -2,17 +2,16 @@
 
 #include <memory>
 #include "World.h"
-#include "DefaultWorld.h"
 #include <iostream>
 
 class Scene
 {
-private:
-	std::unique_ptr<World> world_;
-
 public:
-	Scene() : world_(std::make_unique<DefaultWorld>()) { }
+	Scene() : world_(std::make_unique<World>()) { }
 	~Scene() { }
 
 	World& getWorld() { return *world_; }
+
+private:
+	std::unique_ptr<World> world_;
 };

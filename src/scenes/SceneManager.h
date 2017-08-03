@@ -10,8 +10,10 @@ private:
 	Scene* activeScene_;
 
 public:
-	void loadScene(std::string sceneName);
 	void activateScene(std::string sceneName);
 
-	Scene* getActiveScene() const { return activeScene_; }
+	Scene& getActiveScene() const { return *activeScene_; }
+	
+	void loadSceneFromSqliteDb(std::string sceneName);
+
 };

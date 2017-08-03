@@ -1,13 +1,4 @@
-cmake_minimum_required(VERSION 3.6)
-
-### Project information
-project(svo-renderer)
-set(TheLastCityOnEarth_VERSION_MAJOR 1)
-set(TheLastCityOnEarth_VERSION_MINOR 0)
-set(TARGET_NAME svo-renderer)
-
-### Source information
-set(ROOT_SRC_DIR "src")
+cmake_minimum_required(VERSION 3.9)
 
 # This function adds directory to the variable set below.
 # Unset if you want to use it again
@@ -20,6 +11,13 @@ function(add_directory directory)
 	set(ALL_SRCS ${ALL_SRCS} ${DIR_SRCS} PARENT_SCOPE)
 endfunction(add_directory)
 
+### Project information
+project(svo-renderer)
+set(TARGET_NAME svo-renderer)
+
+### Source information
+set(ROOT_SRC_DIR "src")
+
 add_directory(${ROOT_SRC_DIR})
 add_directory("${ROOT_SRC_DIR}/systems")
 add_directory("${ROOT_SRC_DIR}/scenes")
@@ -27,6 +25,11 @@ add_directory("${ROOT_SRC_DIR}/entities")
 add_directory("${ROOT_SRC_DIR}/components")
 add_directory("${ROOT_SRC_DIR}/world")
 add_directory("${ROOT_SRC_DIR}/context")
+add_directory("${ROOT_SRC_DIR}/utility")
+
+# Shaders
+file(GLOB SHADER_FILES ${CMAKE_SOURCE_DIR}/res/shaders/*.vert ${CMAKE_SOURCE_DIR}/res/shaders/*.frag ${CMAKE_SOURCE_DIR}/res/shaders/*.geom)
+source_group("shaders" FILES ${SHADER_FILES})
 
 ### Libraries and headers
 set(LIB_DIR "lib")
@@ -85,9 +88,37 @@ else()
 	message(SEND_ERROR "Catch was not found.")
 endif()
 
+# Spdlog
+set(DEFAULT_SPDLOG_DIR "spdlog-0.13.0")
+find_path(SPDLOG_HEADERS_DIR spdlog/logger.h ${LIB_DIR}/${DEFAULT_SPDLOG_DIR})
+if(SPDLOG_HEADERS_DIR)
+	include_directories( ${SPDLOG_HEADERS_DIR} )
+else()
+	message(SEND_ERROR "Spdlog was not found.")
+endif()
+
+# Sqlite
+set(DEFAULT_SQLITE_DIR "sqlite")
+find_path(SQLITE_HEADERS_DIR sqlite3.h ${LIB_DIR}/${DEFAULT_SQLITE_DIR}/include)
+find_library(SQLITE_LIB NAMES sqlite3 PATHS ${LIB_DIR}/${DEFAULT_SQLITE_DIR}/${TARGET_SYSTEM})
+if(SQLITE_HEADERS_DIR AND SQLITE_LIB)
+	set(LIBS ${LIBS} ${SQLITE_LIB})
+	include_directories( ${SQLITE_HEADERS_DIR} )
+else()
+	message(SEND_ERROR "Sqlite was not found.")
+endif()	
+
+# Libmorton
+set(DEFAULT_LIBMORTON_DIR "libmorton")
+find_path(LIBMORTON_HEADERS_DIR morton.h ${LIB_DIR}/${DEFAULT_LIBMORTON_DIR}/include)
+if(LIBMORTON_HEADERS_DIR)
+	include_directories( ${LIBMORTON_HEADERS_DIR} )
+else()
+	message(SEND_ERROR "Libmorton was not found.")
+endif()
 
 ### Link target
-add_executable(${TARGET_NAME} ${ALL_SRCS})
+add_executable(${TARGET_NAME} ${ALL_SRCS} ${SHADER_FILES})
 set(LINKER_FLAGS)
 if(UNIX)
 	set(LINKER_FLAGS ${LINKER_FLAGS} "-ldl -lpthread -lX11 -lXrandr -lXinerama -lXxf86vm -lXcursor")
@@ -97,17 +128,21 @@ target_link_libraries(${TARGET_NAME} ${LIBS} ${LINKER_FLAGS})
 if(MSVC)
 	### Setting target as startup project
 	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${TARGET_NAME})
-
+	
 	### Copying DLLs target
 	file(GLOB DLLS ${CMAKE_SOURCE_DIR}/dll/${TARGET_SYSTEM}/*.dll)
 	add_custom_target(CopyDlls ALL DEPENDS ${CMAKE_BINARY_DIR}/unexisting_file.h)
 	foreach(DLL ${DLLS})	
 	  add_custom_command(TARGET CopyDlls POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${DLL} ${CMAKE_BINARY_DIR}/$<CONFIGURATION>/)
 	endforeach()
+
+	### Copying resources target
+	add_custom_target(CopyResources ALL DEPENDS ${CMAKE_BINARY_DIR}/unexisting_file.h)
+	add_custom_command(TARGET CopyResources POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/res ${CMAKE_BINARY_DIR}/$<CONFIGURATION>/data)
+	add_custom_command(TARGET CopyResources POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/res ${CMAKE_BINARY_DIR}/data)
 endif()
 
 ### TEST PROJECT
-project(svo-renderer-tests)
 set(TESTS_TARGET_NAME svo-renderer-tests)
 
 # Tests dir
@@ -122,5 +157,5 @@ add_directory("${ROOT_SRC_DIR}/components")
 add_directory("${ROOT_SRC_DIR}/world")
 add_directory("${ROOT_SRC_DIR}/context")
 
-add_executable(${TESTS_TARGET_NAME} ${ALL_SRCS})
+add_executable(${TESTS_TARGET_NAME} ${ALL_SRCS} ${SHADER_FILES})
 target_link_libraries(${TESTS_TARGET_NAME} ${LIBS} ${LINKER_FLAGS})

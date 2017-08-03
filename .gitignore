@@ -1,2 +1,4 @@
 build/
 x64/
+svo-renderer-tests.dir/
+svo_builder/

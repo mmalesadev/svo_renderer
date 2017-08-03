@@ -1,12 +1,12 @@
 #include "ProgramContext.h"
 #include <GLFW/glfw3.h>
+#include "RenderingSystem.h"
 #include <iostream>
 #include <memory>
 
 ProgramContext::ProgramContext()
 {
 	glfwSetErrorCallback( (GLFWerrorfun)errorCallback );
-	std::string * a = new std::string();
 }
 
 ProgramContext::~ProgramContext()
@@ -43,7 +43,7 @@ void ProgramContext::init()
 	glEnable(GL_DEPTH_TEST);
 	glClearDepth(1.0);
 	glDepthFunc(GL_LESS);
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 	glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
 	GLenum glewErr = glewInit();
@@ -52,8 +52,12 @@ void ProgramContext::init()
 		std::cout << "Error initializing GLEW: " << glewGetErrorString(glewErr) << std::endl;
 	}
 
-	sceneManager_.loadScene("default");
 	sceneManager_.activateScene("default");
+
+	int windowWidth, windowHeight;
+	glfwGetWindowSize(window_, &windowWidth, &windowHeight);
+
+	systems_.push_back(std::make_unique<RenderingSystem>(window_, windowWidth, windowHeight));
 }
 
 void ProgramContext::run()
@@ -69,17 +73,11 @@ void ProgramContext::run()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Update the systems
-		for (System& system : systems_) system.update(sceneManager_.getActiveScene()->getWorld());
-
-		//screen->update(deltaTime);
-
-		//screen->render();
+		for (auto& system : systems_) system->update(sceneManager_.getActiveScene(), deltaTime);
 
 		++FPScount_;
 		if (currentTime - fpsLastTime >= 1)
 		{
-			//screen->FPScount = FPScount;
-			std::cout << "FPS: " << FPScount_ << std::endl;
 			FPScount_ = 0;
 			fpsLastTime = currentTime;
 		}

@@ -18,7 +18,7 @@ private:
 	std::string windowTitle_;
 	int FPScount_ = 0;
 
-	std::vector<System> systems_;
+	std::vector<std::unique_ptr<System>> systems_;
 	
 	static void errorCallback(int error, const char * description);
 
