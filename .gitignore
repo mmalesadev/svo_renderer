@@ -2,3 +2,5 @@ build/
 x64/
 svo-renderer-tests.dir/
 svo_builder/
+res/shaders/glslangValidator.exe
+res/shaders/validate.bat

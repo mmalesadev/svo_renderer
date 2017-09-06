@@ -3,7 +3,7 @@
 #include <spdlog/spdlog.h>
 #include <morton.h>
 
-Octree::Octree(std::string name, glm::vec3 position, float scale)
+Octree::Octree(std::string name)
 {
 	// HEADER
 	std::ifstream octreeHeaderFile("data/" + name + ".octree");
@@ -56,19 +56,13 @@ Octree::Octree(std::string name, glm::vec3 position, float scale)
 			//octreeDataFile.read(reinterpret_cast<char*> (&(data)), sizeof(data));
 			octreeDataFile.read(reinterpret_cast<char*> (&mortonCode), sizeof(uint64_t));
 			morton3D_64_decode(mortonCode, gridPosition[0], gridPosition[1], gridPosition[2]);
-			data.position.x = (scale / header_.gridLength) * gridPosition[0] + position.x;
-			data.position.y = (scale / header_.gridLength) * gridPosition[1] + position.y;
-			data.position.z = (scale / header_.gridLength) * gridPosition[2] + position.z;
+			data.position.x = (1.0f / header_.gridLength) * (float)gridPosition[0];
+			data.position.y = (1.0f / header_.gridLength) * (float)gridPosition[1];
+			data.position.z = (1.0f / header_.gridLength) * (float)gridPosition[2];
 			octreeDataFile.read(reinterpret_cast<char*> (&data.color), sizeof(glm::vec3));
 			octreeDataFile.read(reinterpret_cast<char*> (&data.normal), sizeof(glm::vec3));
 			data_.push_back(data);
 			//spdlog::get("console")->debug("Node: {0}, {1}, {2}", data.gridPosition[0], data.gridPosition[1], data.gridPosition[2]);
-
-			if (dataNo == 0)
-			{
-				spdlog::get("console")->critical("Pierwszy node: {0}, {1}, {2}", data.position.x, data.position.y, data.position.z);
-			}
-
 		}
 	}
 	else

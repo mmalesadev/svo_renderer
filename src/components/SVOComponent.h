@@ -7,9 +7,10 @@
 class SVOComponent : public GraphicsComponent
 {
 public:
-	SVOComponent(std::string name, glm::vec3 position, float scale);
+	SVOComponent(std::string name);
 	~SVOComponent() { };
 
+	virtual void setUniforms(ShaderProgram& shaderProgram);
 	virtual void render();
 
 private:

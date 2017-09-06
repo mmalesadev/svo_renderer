@@ -4,7 +4,7 @@ RenderingSystem::RenderingSystem(GLFWwindow* window, int windowWidth, int window
 {
 	shaderProgram_.loadShaderProgram("main");
 	camera_.setPerspectiveMatrix(45.0f, (float)windowWidth / (float)windowHeight, 0.2f, 4000.0f);
-	camera_.init(window, glm::vec3(0, 0, -50), 0.0f, 0.0f, 300.0f, 0.01f);
+	camera_.init(window, glm::vec3(0, 0, -50), 0.0f, 0.0f, 5.0f, 0.01f);
 }
 
 void RenderingSystem::update(Scene& scene, float deltaTime)
@@ -13,24 +13,23 @@ void RenderingSystem::update(Scene& scene, float deltaTime)
 	auto& entities = world.getEntities();
 
 	camera_.update(deltaTime);
-	//printf("eye: %f", camera_.eye.x);
 
 	shaderProgram_.useProgram();	// TODO IMPORTANT: po kolei renderowane wszystkie obiekty, sortowane po shader programie (jak najmniej przelaczen)
 	for(auto& entity : entities)
 	{
 		auto& graphicsComponent = entity->getGraphicsComponent();
-
-		// TODO: renderujemy u¿ywaj¹c funkcji z GraphicsComponent.
+		
+		// TODO: W zale¿noœci od komponentu ustawiamy uniformy. Wyrzuciæ funkcjê graphicsComponent->setUniforms();
 		glm::mat4 projectionMatrix = camera_.getProjectionMatrix();
 		glm::mat4 viewMatrix = camera_.getViewMatrix();
-		//printf("Entity pos: %f %f %f", entity->getPosition().x, entity->getPosition().y, entity->getPosition().z);
 		glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), entity->getPosition()) *
 			glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(1.0f, 0.0f, 0.0f)) *
 			glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(0.0f, 1.0f, 0.0f)) *
-			glm::mat4(1.0f);
-		glm::mat4 MVP = projectionMatrix * viewMatrix * modelMatrix;
-		shaderProgram_.setUniform("MVP", MVP);
-
+			glm::mat4(1.0f) * glm::scale(glm::mat4(1.0f), glm::vec3(entity->getScale()));
+		shaderProgram_.setUniform("MV", viewMatrix * modelMatrix);
+		shaderProgram_.setUniform("P", projectionMatrix);
+		shaderProgram_.setUniform("scale", entity->getScale());
+		graphicsComponent->setUniforms(shaderProgram_);
 		graphicsComponent->render();
 	}
 }

@@ -24,6 +24,9 @@ void Camera::update(float deltaTime)
 	horizontalAngle += mouseSpeed * float(width / 2 - xPos);
 	verticalAngle += mouseSpeed * float(height / 2 - yPos);
 
+	if (verticalAngle > 3.14f / 2.0f) verticalAngle = 3.14f / 2.0f;
+	if (verticalAngle < -3.14f / 2.0f) verticalAngle = -3.14f / 2.0f;
+
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
 	direction = glm::vec3(
 		cos(verticalAngle) * sin(horizontalAngle),
@@ -39,8 +42,6 @@ void Camera::update(float deltaTime)
 	);
 
 	up = glm::cross(right, direction);
-
-	setViewMatrix(eye, eye + direction, up);
 
 	// Move forward
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -74,6 +75,8 @@ void Camera::update(float deltaTime)
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
 		eye.y -= deltaTime * speed;
 	}
+
+	setViewMatrix(eye, eye + direction, up);
 }
 
 void Camera::setPerspectiveMatrix(float FoV, float ratio, float near, float far)

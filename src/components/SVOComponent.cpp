@@ -1,6 +1,6 @@
 #include "SVOComponent.h"
 
-SVOComponent::SVOComponent(std::string name, glm::vec3 position, float scale) : octree(std::make_unique<Octree>(name, position, scale))
+SVOComponent::SVOComponent(std::string name) : octree(std::make_unique<Octree>(name))
 {
 	glGenVertexArrays(1, &VAO_);
 	glGenBuffers(1, &VBO_);
@@ -20,6 +20,11 @@ SVOComponent::SVOComponent(std::string name, glm::vec3 position, float scale) : 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Octree::Data), (GLvoid*)0);
 	//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+}
+
+void SVOComponent::setUniforms(ShaderProgram& shaderProgram)
+{
+	shaderProgram.setUniform("gridLength", (float) octree->getHeader().gridLength);
 }
 
 void SVOComponent::render()

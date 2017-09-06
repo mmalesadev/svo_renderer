@@ -29,8 +29,9 @@ public:
 	};
 
 public:
-	Octree(std::string name, glm::vec3 position, float scale);
+	Octree(std::string name);
 
+	Header& getHeader() { return header_; }
 	std::vector<Data> getData() { return data_; }
 	void printLoadedOctree();
 
