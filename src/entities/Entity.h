@@ -21,7 +21,7 @@ public:
 		if (graphicsComponentType == "svo")
 		{
 			SPDLOG_DEBUG(spdlog::get("console"), "Constructing SVOComponent.");
-			graphicsComponent_ = std::make_unique<SVOComponent>(name_, position_, scale_);
+			graphicsComponent_ = std::make_unique<SVOComponent>(name_);
 		}
 	}
 

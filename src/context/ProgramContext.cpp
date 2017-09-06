@@ -43,7 +43,7 @@ void ProgramContext::init()
 	glEnable(GL_DEPTH_TEST);
 	glClearDepth(1.0);
 	glDepthFunc(GL_LESS);
-	//glEnable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 	glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
 	GLenum glewErr = glewInit();
@@ -78,6 +78,7 @@ void ProgramContext::run()
 		++FPScount_;
 		if (currentTime - fpsLastTime >= 1)
 		{
+			glfwSetWindowTitle(window_, std::to_string(FPScount_).c_str());
 			FPScount_ = 0;
 			fpsLastTime = currentTime;
 		}

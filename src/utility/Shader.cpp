@@ -86,7 +86,7 @@ void ShaderProgram::loadShaderProgram(std::string shaderName)
 
 	createProgram();
 	addShaderToProgram(&vertexShader);
-	//addShaderToProgram(&geometryShader);
+	addShaderToProgram(&geometryShader);
 	addShaderToProgram(&fragmentShader);
 	//addShaderToProgram(&commonShader);
 	linkProgram();
