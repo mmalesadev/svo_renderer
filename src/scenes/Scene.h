@@ -3,15 +3,19 @@
 #include <memory>
 #include "World.h"
 #include <iostream>
+#include "Entity.h"
 
 class Scene
 {
 public:
-	Scene() : world_(std::make_unique<World>()) { }
-	~Scene() { }
+    Scene();
 
-	World& getWorld() { return *world_; }
+    World& getWorld();
+    Entity* getActiveCamera();
 
+    void activateFirstFoundCamera(GLFWwindow* window);
+   
 private:
-	std::unique_ptr<World> world_;
+    std::unique_ptr<World> world_;
+    Entity* activeCamera_ = nullptr;
 };

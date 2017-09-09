@@ -4,6 +4,6 @@
 class System
 {
 public:
-	virtual void update(Scene& scene, float deltaTime) = 0;
-	virtual ~System() {};
+    virtual void update(Scene& scene, float deltaTime) = 0;
+    virtual ~System();
 };

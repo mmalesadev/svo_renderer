@@ -7,12 +7,12 @@
 class SVOComponent : public GraphicsComponent
 {
 public:
-	SVOComponent(std::string name);
-	~SVOComponent() { };
+    SVOComponent(std::string name);
+    ~SVOComponent() = default;
 
-	virtual void setUniforms(ShaderProgram& shaderProgram);
-	virtual void render();
+    virtual void setUniforms(ShaderProgram& shaderProgram);
+    virtual void render();
 
 private:
-	std::unique_ptr<Octree> octree;
+    std::unique_ptr<Octree> octree;
 };

@@ -5,9 +5,9 @@
 class World
 {
 public:
-	std::vector<std::unique_ptr<Entity>>& getEntities() { return entities_; }
+    std::vector<std::unique_ptr<Entity>>& getEntities();
 
 private:
-	std::vector<std::unique_ptr<Entity>> entities_;
+    std::vector<std::unique_ptr<Entity>> entities_;
 
 };

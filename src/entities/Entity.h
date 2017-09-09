@@ -1,51 +1,34 @@
 #pragma once
 
 #include <memory>
+#include <spdlog/spdlog.h>
 #include "GraphicsComponent.h"
 #include "ControllerComponent.h"
-#include <spdlog/spdlog.h>
+#include "TransformComponent.h"
+#include "CameraComponent.h"
 #include "SVOComponent.h"
 
 class Entity
 {
 public:
-	Entity(char **data) : id_(std::stoi(data[0])), name_(data[1]), scale_(std::stof(data[3])),
-		position_(glm::vec3(std::stof(data[4]), std::stof(data[5]), std::stof(data[6])))
-	{
-		SPDLOG_DEBUG(spdlog::get("console"), "Constructing entity. id: {0}, name: {1}", id_, data[1]);
+    Entity(unsigned int id, std::string name, std::unique_ptr<TransformComponent>& transformComponent, std::unique_ptr<GraphicsComponent>& graphicsComponent,
+        std::unique_ptr<CameraComponent>& cameraComponent);
 
-		// Deciding on graphics component type by file extension
-		// TODO: Przerzuæ do entity creator
-		// Dodaj name do Entity i w bazie danych w tabeli SceneEntities
-		std::string graphicsComponentType(data[2]);
-		if (graphicsComponentType == "svo")
-		{
-			SPDLOG_DEBUG(spdlog::get("console"), "Constructing SVOComponent.");
-			graphicsComponent_ = std::make_unique<SVOComponent>(name_);
-		}
-	}
+    ~Entity();
 
-	~Entity()
-	{
-		SPDLOG_DEBUG(spdlog::get("console"), "Destructing entity.");
-	}
+    Entity(const Entity&);
 
-	Entity(const Entity&)
-	{
-		SPDLOG_DEBUG(spdlog::get("console"), "Copy constructing entity.");
-	}
-
-	std::string getName() { return name_; }
-	float getScale() { return scale_; }
-	glm::vec3 getPosition() { return position_; }
-	std::unique_ptr<GraphicsComponent>& getGraphicsComponent() { return graphicsComponent_; }
-	std::unique_ptr<ControllerComponent>& getControllerComponent() { return controllerComponent_; }
+    std::string getName();
+    std::unique_ptr<TransformComponent>& getTransformComponent();
+    std::unique_ptr<GraphicsComponent>& getGraphicsComponent();
+    std::unique_ptr<CameraComponent>& getCameraComponent();
+    std::unique_ptr<ControllerComponent>& getControllerComponent();
 
 private:
-	unsigned int id_;
-	std::string name_;
-	float scale_;
-	glm::vec3 position_;
-	std::unique_ptr<GraphicsComponent> graphicsComponent_;
-	std::unique_ptr<ControllerComponent> controllerComponent_;
+    unsigned int id_;
+    std::string name_;
+    std::unique_ptr<TransformComponent> transformComponent_;
+    std::unique_ptr<GraphicsComponent> graphicsComponent_;
+    std::unique_ptr<CameraComponent> cameraComponent_;
+    std::unique_ptr<ControllerComponent> controllerComponent_;
 };

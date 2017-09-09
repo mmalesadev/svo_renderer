@@ -6,28 +6,32 @@
 
 struct CrtMemoryCheck
 {
-	_CrtMemState startState;
-	_CrtMemState endState;
-	_CrtMemState stateDiff;
+    _CrtMemState startState;
+    _CrtMemState endState;
+    _CrtMemState stateDiff;
 
-	CrtMemoryCheck()
-	{
-		_CrtMemCheckpoint(&startState);
-	}
+    CrtMemoryCheck()
+    {
+        _CrtMemCheckpoint(&startState);
+    }
 
-	~CrtMemoryCheck()
-	{
-		_CrtMemCheckpoint(&endState);
-		REQUIRE(0 == _CrtMemDifference(&stateDiff, &startState, &endState));
-	}
+    ~CrtMemoryCheck()
+    {
+        _CrtMemCheckpoint(&endState);
+        REQUIRE(0 == _CrtMemDifference(&stateDiff, &startState, &endState));
+    }
 };
 
 TEST_CASE( "Initializing whole program" )
 {
-	CrtMemoryCheck crtMemoryCheck;
+    auto console = spdlog::stdout_color_mt("console");
+    console->set_pattern("[%H:%M:%S][%l] %v");
+    console->set_level(spdlog::level::debug);
 
-	ProgramContext programContext;
-	programContext.init();
+    CrtMemoryCheck crtMemoryCheck;
+
+    ProgramContext programContext;
+    programContext.init();
 }
 
 #endif

@@ -10,16 +10,19 @@ layout(triangle_strip, max_vertices = 4) out;
 in voxelData
 {
     vec4 color;
+    vec3 normal;
 } voxel[];
 
 out vec4 color;
+out vec3 normal;
 
 void main()
 {
     vec4 voxelPosViewSpace = gl_in[0].gl_Position;
     color = voxel[0].color;
+    normal = voxel[0].normal;
 
-    float voxelOffset = (scale/gridLength) * 1.414;     // 1.414 = sqrt(2)
+    float voxelOffset = (scale/gridLength) * 1.414213;     // 1.414213 = sqrt(2)
     
     vec2 bottomLeft = voxelPosViewSpace.xy + vec2(-0.5, -0.5) * voxelOffset;
     gl_Position = P * vec4(bottomLeft, voxelPosViewSpace.zw);
@@ -37,5 +40,5 @@ void main()
     gl_Position = P * vec4(topRight, voxelPosViewSpace.zw);
     EmitVertex();
 
-	EndPrimitive();
+    EndPrimitive();
 }

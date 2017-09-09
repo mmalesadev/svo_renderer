@@ -4,7 +4,6 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
 #include <vector>
 #include <System.h>
 #include "SceneManager.h"
@@ -12,21 +11,23 @@
 class ProgramContext
 {
 private:
-	GLFWwindow * window_;
-	SceneManager sceneManager_;
+    static GLFWwindow * window_;
+    std::unique_ptr<SceneManager> sceneManager_;
 
-	std::string windowTitle_;
-	int FPScount_ = 0;
+    std::string windowTitle_;
+    int FPScount_ = 0;
 
-	std::vector<std::unique_ptr<System>> systems_;
-	
-	static void errorCallback(int error, const char * description);
+    std::vector<std::unique_ptr<System>> systems_;
+    
+    static void errorCallback(int error, const char * description);
 
 public:
-	void init();
-	void run();
+    void init();
+    void run();
 
-	ProgramContext();
-	~ProgramContext();
+    static GLFWwindow * getWindow();
+
+    ProgramContext();
+    ~ProgramContext();
 };
 
