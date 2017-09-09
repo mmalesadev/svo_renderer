@@ -7,9 +7,17 @@ uniform float gridLength;
 layout(points) in;
 layout(triangle_strip, max_vertices = 4) out;
 
+in voxelData
+{
+    vec4 color;
+} voxel[];
+
+out vec4 color;
+
 void main()
 {
     vec4 voxelPosViewSpace = gl_in[0].gl_Position;
+    color = voxel[0].color;
 
     float voxelOffset = (scale/gridLength) * 1.414;     // 1.414 = sqrt(2)
     

@@ -19,6 +19,8 @@ SVOComponent::SVOComponent(std::string name) : octree(std::make_unique<Octree>(n
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Octree::Data), (GLvoid*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Octree::Data), (GLvoid*)offsetof(Octree::Data, color));
 	//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
 }
 
@@ -32,6 +34,6 @@ void SVOComponent::render()
 	//printf("Rendering component\n");
 	glBindVertexArray(VAO_);
 	glDrawArrays(GL_POINTS, 0, octree->getData().size());
-	//glDrawArrays(GL_POINTS, 0, 1);
-	//glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	//SPDLOG_DEBUG(spdlog::get("console"), "{0} {1} {2}", octree->getData()[1].color.x, octree->getData()[1].color.y, octree->getData()[1].color.z);
 }
