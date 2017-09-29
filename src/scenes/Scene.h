@@ -13,7 +13,7 @@ public:
     World& getWorld();
     Entity* getActiveCamera();
 
-    void activateFirstFoundCamera(GLFWwindow* window);
+    void activateFirstFoundCamera();
    
 private:
     std::unique_ptr<World> world_;

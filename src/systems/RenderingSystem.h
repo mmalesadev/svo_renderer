@@ -6,7 +6,7 @@ class RenderingSystem : public System
 {
 public:
     RenderingSystem();
-    virtual void update(Scene& scene, float deltaTime);
+    virtual void update(float deltaTime);
 
 private:
     ShaderProgram shaderProgram_;

@@ -1,8 +1,31 @@
 #include "SceneManager.h"
 #include <sqlite3.h>
 
-SceneManager::SceneManager(GLFWwindow * window) : window_(window)
+SceneManager* SceneManager::instance_ = nullptr;
+
+SceneManager::SceneManager()
 {
+    instance_ = this;
+}
+
+SceneManager::~SceneManager()
+{
+    instance_ = nullptr;
+}
+
+std::unique_ptr<SceneManager> SceneManager::createInstance()
+{
+    if (!instance_)
+    {
+        std::unique_ptr<SceneManager> sceneManager(new SceneManager());
+        return sceneManager;
+    }
+    else return nullptr;
+}
+
+SceneManager* SceneManager::getInstance()
+{
+    return instance_;
 }
 
 void SceneManager::activateScene(std::string sceneName)
@@ -17,13 +40,13 @@ void SceneManager::activateScene(std::string sceneName)
     {
         loadSceneFromSqliteDb(sceneName);
         activeScene_ = scenes_[sceneName].get();
-        activeScene_->activateFirstFoundCamera(window_);
+        activeScene_->activateFirstFoundCamera();
     }
 }
 
-Scene& SceneManager::getActiveScene() const
+Scene* SceneManager::getActiveScene()
 {
-    return *activeScene_;
+    return activeScene_;
 }
 
 void SceneManager::loadSceneFromSqliteDb(std::string sceneName)

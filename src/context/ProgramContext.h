@@ -7,14 +7,13 @@
 #include <vector>
 #include <System.h>
 #include "SceneManager.h"
+#include "ProgramVariables.h"
 
 class ProgramContext
 {
 private:
-    static GLFWwindow * window_;
     std::unique_ptr<SceneManager> sceneManager_;
 
-    std::string windowTitle_;
     int FPScount_ = 0;
 
     std::vector<std::unique_ptr<System>> systems_;
@@ -24,8 +23,6 @@ private:
 public:
     void init();
     void run();
-
-    static GLFWwindow * getWindow();
 
     ProgramContext();
     ~ProgramContext();

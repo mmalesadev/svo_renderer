@@ -35,8 +35,3 @@ std::unique_ptr<CameraComponent>& Entity::getCameraComponent()
 {
     return cameraComponent_;
 }
-
-std::unique_ptr<ControllerComponent>& Entity::getControllerComponent()
-{
-    return controllerComponent_;
-}

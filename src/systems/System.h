@@ -1,9 +1,10 @@
 #pragma once
-#include "Scene.h"
+
+#include "SceneManager.h"
 
 class System
 {
 public:
-    virtual void update(Scene& scene, float deltaTime) = 0;
+    virtual void update(float deltaTime) = 0;
     virtual ~System();
 };

@@ -3,7 +3,6 @@
 #include <memory>
 #include <spdlog/spdlog.h>
 #include "GraphicsComponent.h"
-#include "ControllerComponent.h"
 #include "TransformComponent.h"
 #include "CameraComponent.h"
 #include "SVOComponent.h"
@@ -22,7 +21,6 @@ public:
     std::unique_ptr<TransformComponent>& getTransformComponent();
     std::unique_ptr<GraphicsComponent>& getGraphicsComponent();
     std::unique_ptr<CameraComponent>& getCameraComponent();
-    std::unique_ptr<ControllerComponent>& getControllerComponent();
 
 private:
     unsigned int id_;
@@ -30,5 +28,4 @@ private:
     std::unique_ptr<TransformComponent> transformComponent_;
     std::unique_ptr<GraphicsComponent> graphicsComponent_;
     std::unique_ptr<CameraComponent> cameraComponent_;
-    std::unique_ptr<ControllerComponent> controllerComponent_;
 };

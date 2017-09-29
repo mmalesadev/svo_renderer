@@ -10,11 +10,12 @@ RenderingSystem::RenderingSystem()
     //camera_.init(window, glm::vec3(0, 0, -50), 0.0f, 0.0f, 5.0f, 0.01f);
 }
 
-void RenderingSystem::update(Scene& scene, float deltaTime)
+void RenderingSystem::update(float deltaTime)
 {
-    World& world = scene.getWorld();
+    auto activeScene = SceneManager::getInstance()->getActiveScene();
+    World& world = activeScene->getWorld();
     auto& entities = world.getEntities();
-    auto activeCamera = scene.getActiveCamera();
+    auto activeCamera = activeScene->getActiveCamera();
 
     //activeCamera_.update(deltaTime);
 

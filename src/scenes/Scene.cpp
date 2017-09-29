@@ -12,14 +12,14 @@ Entity * Scene::getActiveCamera()
     return activeCamera_;
 }
 
-void Scene::activateFirstFoundCamera(GLFWwindow* window)
+void Scene::activateFirstFoundCamera()
 {
     auto& entities = world_->getEntities();
     for (auto& entity : entities)
     {
         if (entity->getCameraComponent())
         {
-            entity->getCameraComponent()->activate(window, *entity->getTransformComponent());
+            entity->getCameraComponent()->activate(*entity->getTransformComponent());
             activeCamera_ = entity.get();
             return;
         }

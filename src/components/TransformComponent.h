@@ -1,5 +1,4 @@
 #pragma once
-#include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 
 class TransformComponent
@@ -7,9 +6,13 @@ class TransformComponent
 public:
     TransformComponent(float scale, glm::vec3 position, glm::vec3 eulerAngles);
 
-    float getScale();
-    glm::vec3 getPosition();
-    glm::quat getQuaternion();
+    float getScale() const;
+
+    glm::vec3 getPosition() const;
+    void setPosition(glm::vec3 position);
+
+    glm::quat getQuaternion() const;
+    void setQuaternion(glm::quat quaternion);
 
 private:
     float scale_;
