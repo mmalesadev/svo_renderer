@@ -5,6 +5,6 @@
 class System
 {
 public:
-    virtual void update(float deltaTime) = 0;
+    virtual void update() = 0;
     virtual ~System();
 };

@@ -52,7 +52,7 @@ void ProgramContext::run()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Update the systems
-        for (auto& system : systems_) system->update(ProgramVariables::getDeltaTime());
+        for (auto& system : systems_) system->update();
 
         ++FPScount_;
         if (currentTime - fpsLastTime >= 1)
