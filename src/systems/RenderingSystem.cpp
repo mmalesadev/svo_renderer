@@ -6,18 +6,14 @@
 RenderingSystem::RenderingSystem()
 {
     shaderProgram_.loadShaderProgram("main");
-    //camera_.setPerspectiveMatrix(45.0f, (float)windowWidth / (float)windowHeight, 0.2f, 4000.0f);
-    //camera_.init(window, glm::vec3(0, 0, -50), 0.0f, 0.0f, 5.0f, 0.01f);
 }
 
-void RenderingSystem::update(float deltaTime)
+void RenderingSystem::update()
 {
     auto activeScene = SceneManager::getInstance()->getActiveScene();
     World& world = activeScene->getWorld();
     auto& entities = world.getEntities();
     auto activeCamera = activeScene->getActiveCamera();
-
-    //activeCamera_.update(deltaTime);
 
     shaderProgram_.useProgram();    // TODO IMPORTANT: po kolei renderowane wszystkie obiekty, sortowane po shader programie (jak najmniej przelaczen)
     for(auto& entity : entities)

@@ -1,4 +1,5 @@
 #include "Scene.h"
+#include "ProgramVariables.h"
 
 Scene::Scene() : world_(std::make_unique<World>()) { }
 

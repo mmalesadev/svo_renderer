@@ -24,11 +24,11 @@ InputSystem::InputSystem()
     actionMap_["ROLL_CAMERA_RIGHT"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::ROLL_RIGHT);
     actionMap_["MOVE_CAMERA_UP"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::MOVE_UP);
     actionMap_["MOVE_CAMERA_DOWN"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::MOVE_DOWN);
-
+    
     loadActionKeyMapFromSqliteDb();
 }
 
-void InputSystem::update(float deltaTime)
+void InputSystem::update()
 {
     // Checking all possible keys pressed and executing assigned actions
     for (auto it = keyActionMap_.begin(); it != keyActionMap_.end(); ++it)
@@ -84,13 +84,13 @@ void InputSystem::moveActiveCamera(MovementType movementType)
             break;
         case MovementType::ROLL_LEFT:
         {
-            glm::quat deltaRoll = glm::angleAxis(-0.02f * ProgramVariables::getDeltaTime(), cameraComponent->getDirection());
+            glm::quat deltaRoll = glm::angleAxis(-1.0f * ProgramVariables::getDeltaTime(), cameraComponent->getDirection());
             transformComponent->setQuaternion(glm::normalize(deltaRoll * transformComponent->getQuaternion()));
             break;
         }
         case MovementType::ROLL_RIGHT:
         {
-            glm::quat deltaRoll = glm::angleAxis(0.02f * ProgramVariables::getDeltaTime(), cameraComponent->getDirection());
+            glm::quat deltaRoll = glm::angleAxis(1.0f * ProgramVariables::getDeltaTime(), cameraComponent->getDirection());
             transformComponent->setQuaternion(glm::normalize(deltaRoll * transformComponent->getQuaternion()));
             break;
         }

@@ -2,45 +2,49 @@
 #include <vector>
 #include <string>
 #include <glm/glm.hpp>
+#include "OctreeFile.h"
+
+// TODO: W OctreeFile zrobiæ drzewo wskaŸników (node to Node)
+// na za³adowane dane octreeFile_, na poœredniczace woksele oczywiœcie te¿,
+// ale dodaæ do nich pozycje, kolor [, normalne].
+class InnerNode;
 
 class Octree
 {
-private:
-    struct Header {
-        unsigned int version;
-        unsigned int gridLength;
-        unsigned int nNodes;
-        unsigned int nData;
+public:    
+    class Node
+    {
+    public:
+        Node() {}
+
+        void addChild(std::unique_ptr<Node>& node)
+        {
+            children.push_back(std::move(node));
+        }
+
+    private:
+        std::vector<std::unique_ptr<Node>> children;
+        InnerNode* parent = nullptr;
     };
 
-    struct Node {
-        size_t dataAddress;
-        size_t childrenBaseAddress;
-        char childrenOffsets[8];
+    class InnerNode : public Node
+    {
+    public:
+        InnerNode() {}
     };
 
-public:
-    struct Data {
-        //uint64_t mortonCode;    TODO: przechowuj tez mortonCode. Operator porównywania, zeby stwierdzic czy cos jest nizej czy wyzej w drzewie
-        //uint32_t gridPosition[3];
-        glm::vec3 position;
-        glm::vec3 color;
-        glm::vec3 normal;
+    class OuterNode : public Node
+    {
+    public:
+        OuterNode() {}
     };
 
-public:
-    Octree(std::string name);
-
-    Header& getHeader();
-    std::vector<Data> getData();
-    void printLoadedOctree();
-
-    // TODO:
-    // Porobiæ odpowiednie funkcje do dotarcia do liœcia (ma childBaseAddress == 0)
-    // Pozycje woksela jak zczytujemy? Morton code czy co (sprawdŸ w svo rendererze)
+    Octree(OctreeFile& octreeFile);
+    
+    std::unique_ptr<Node> loadNodesRecursively(OctreeFile::Node& dataNode, Node& parentOctreeNode);
 
 private:
-    Header header_;
-    std::vector<Node> nodes_;
-    std::vector<Data> data_;
+    std::unique_ptr<Node> rootNode_;
+
+    OctreeFile& octreeFile_;
 };
