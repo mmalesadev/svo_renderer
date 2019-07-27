@@ -14,10 +14,11 @@ public:
     virtual void setUniforms(ShaderProgram& shaderProgram);
     virtual void render();
 
+    virtual void renderBoundingBox();
+
     void printOctreeNodeInfo();
 
 private:
-
     std::unique_ptr<OctreeFile> octreeFile_;
     std::unique_ptr<Octree> octree_;
 };

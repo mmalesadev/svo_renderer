@@ -14,7 +14,7 @@ out voxelData
 
 void main()
 {
-    gl_Position = MV * vec4(voxelPosition, 1.0);
+    gl_Position = vec4(voxelPosition, 1.0);
     voxel.color = vec4(voxelColor, 1.0);
     voxel.normal = voxel.normal;
 }

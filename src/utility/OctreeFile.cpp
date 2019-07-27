@@ -133,7 +133,7 @@ void OctreeFile::printLoadedOctree()
     int leafNodesNo = 0;
     spdlog::get("console")->debug("Loaded octree nodes size: {0}", nodes_.size());
     spdlog::get("console")->debug("Loaded octree header: {0}, {1}, {2}, {3}.", header_.version, header_.gridLength, header_.nData, header_.nNodes);
-    for (int nodeNo = 0; nodeNo < header_.nNodes; ++nodeNo)
+    for (int nodeNo = 0; nodeNo < header_.nNodes - 1; ++nodeNo)
     {
         if (nodes_[nodeNo].childrenBaseAddress == 0)
         {

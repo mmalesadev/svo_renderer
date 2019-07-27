@@ -42,13 +42,6 @@ public:
     std::vector<Data>& getData();
     void printLoadedOctree();
 
-
-
-    // TODO:
-    // Porobiæ odpowiednie funkcje do dotarcia do liœcia (ma childBaseAddress == 0)
-    // Pozycje woksela jak zczytujemy? Morton code czy co (sprawdŸ w svo rendererze)
-
-
 private:
 
     Header header_;
