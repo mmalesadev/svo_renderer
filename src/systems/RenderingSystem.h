@@ -10,5 +10,8 @@ public:
     virtual void update();
 
 private:
-    ShaderProgram shaderProgram_;
+    ShaderProgram mainShaderProgram_;
+    ShaderProgram boundingBoxShaderProgram_;
+
+    std::pair<int, int> windowSize_;
 };

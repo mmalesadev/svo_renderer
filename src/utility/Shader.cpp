@@ -47,7 +47,7 @@ bool Shader::loadShader(std::string file, int type)
     this->type = type;
     loaded = true;
 
-    return 1;
+    return true;
 }
 
 void Shader::deleteShader()
@@ -79,21 +79,21 @@ void ShaderProgram::loadShaderProgram(std::string shaderName)
 {
     Shader vertexShader, geometryShader, fragmentShader;// , commonShader;
 
-    vertexShader.loadShader("data/shaders/" + shaderName + ".vert", GL_VERTEX_SHADER);
-    geometryShader.loadShader("data/shaders/" + shaderName + ".geom", GL_GEOMETRY_SHADER);
-    fragmentShader.loadShader("data/shaders/" + shaderName + ".frag", GL_FRAGMENT_SHADER);
+    bool vertexShaderLoaded = vertexShader.loadShader("data/shaders/" + shaderName + ".vert", GL_VERTEX_SHADER);
+    bool geometryShaderLoaded = geometryShader.loadShader("data/shaders/" + shaderName + ".geom", GL_GEOMETRY_SHADER);
+    bool fragmentShaderLoaded = fragmentShader.loadShader("data/shaders/" + shaderName + ".frag", GL_FRAGMENT_SHADER);
     //commonShader.loadShader("data/shaders/common.frag", GL_FRAGMENT_SHADER);
 
     createProgram();
-    addShaderToProgram(&vertexShader);
-    addShaderToProgram(&geometryShader);
-    addShaderToProgram(&fragmentShader);
+    if (vertexShaderLoaded) addShaderToProgram(&vertexShader);
+    if (geometryShaderLoaded) addShaderToProgram(&geometryShader);
+    if (fragmentShaderLoaded) addShaderToProgram(&fragmentShader);
     //addShaderToProgram(&commonShader);
     linkProgram();
 
-    vertexShader.deleteShader();
-    geometryShader.deleteShader();
-    fragmentShader.deleteShader();
+    if (vertexShaderLoaded) vertexShader.deleteShader();
+    if (geometryShaderLoaded) geometryShader.deleteShader();
+    if (fragmentShaderLoaded) fragmentShader.deleteShader();
     //commonShader.deleteShader();
 }
 
