@@ -13,7 +13,7 @@ endfunction(add_directory)
 
 ### Project information
 project(svo-renderer)
-set(TARGET_NAME svo-renderer)
+set(CMAKE_CXX_STANDARD 14)
 
 ### Source information
 set(ROOT_SRC_DIR "src")
@@ -118,12 +118,14 @@ else()
 endif()
 
 ### Link target
-add_executable(${TARGET_NAME} ${ALL_SRCS} ${SHADER_FILES})
+add_executable(svo-renderer "")
+target_sources(svo-renderer PRIVATE ${ALL_SRCS} ${SHADER_FILES})
+
 set(LINKER_FLAGS)
 if(UNIX)
     set(LINKER_FLAGS ${LINKER_FLAGS} "-ldl -lpthread -lX11 -lXrandr -lXinerama -lXxf86vm -lXcursor")
 endif()
-target_link_libraries(${TARGET_NAME} ${LIBS} ${LINKER_FLAGS})
+target_link_libraries(svo-renderer ${LIBS} ${LINKER_FLAGS})
 
 if(MSVC)
     ### Setting target as startup project
@@ -135,15 +137,9 @@ if(MSVC)
     foreach(DLL ${DLLS})    
       add_custom_command(TARGET CopyDlls POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${DLL} ${CMAKE_BINARY_DIR}/$<CONFIGURATION>/)
     endforeach()
-
-    ### Copying resources target
-    add_custom_target(CopyResources ALL DEPENDS ${CMAKE_BINARY_DIR}/unexisting_file.h)
-    add_custom_command(TARGET CopyResources POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/res ${CMAKE_BINARY_DIR}/$<CONFIGURATION>/data)
-    add_custom_command(TARGET CopyResources POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/res ${CMAKE_BINARY_DIR}/data)
 endif()
 
 ### TEST PROJECT
-set(TESTS_TARGET_NAME svo-renderer-tests)
 
 # Tests dir
 set(ROOT_TESTS_DIR "test")
@@ -158,5 +154,5 @@ add_directory("${ROOT_SRC_DIR}/world")
 add_directory("${ROOT_SRC_DIR}/context")
 add_directory("${ROOT_SRC_DIR}/utility")
 
-add_executable(${TESTS_TARGET_NAME} ${ALL_SRCS} ${SHADER_FILES})
-target_link_libraries(${TESTS_TARGET_NAME} ${LIBS} ${LINKER_FLAGS})
+add_executable(svo-renderer-tests ${ALL_SRCS} ${SHADER_FILES})
+target_link_libraries(svo-renderer-tests ${LIBS} ${LINKER_FLAGS})

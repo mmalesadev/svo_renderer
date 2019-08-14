@@ -52,7 +52,7 @@ Scene* SceneManager::getActiveScene()
 void SceneManager::loadSceneFromSqliteDb(std::string sceneName)
 {
     sqlite3* db;
-    int returnCode = sqlite3_open("data/database.db", &db);
+    int returnCode = sqlite3_open("../data/database.db", &db);
     if (returnCode)
     {
         spdlog::get("console")->critical("Can't open database: {0}", sqlite3_errmsg(db));

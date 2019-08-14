@@ -95,7 +95,7 @@ void SVOComponent::printOctreeNodeInfo()
                     node.childrenBaseAddress + (int)node.childrenOffsets[j], i);
             }
         }
-        std::cout << std::endl << "data address: " << node.dataAddress << std::endl;
+        std::cout << std::endl << "../data address: " << node.dataAddress << std::endl;
         std::cout << "rgb: " << data[node.dataAddress].color.r << " " << data[node.dataAddress].color.g << " " << data[node.dataAddress].color.b << std::endl;
         std::cout << "xyz: " << data[node.dataAddress].position.x << " " << data[node.dataAddress].position.y << " " << data[node.dataAddress].position.z << std::endl;
         std::cout << "morton: " << std::bitset<64>(data[node.dataAddress].mortonCode) << std::endl;
