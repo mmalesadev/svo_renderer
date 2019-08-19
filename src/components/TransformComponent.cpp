@@ -1,8 +1,21 @@
 #include "TransformComponent.h"
 #include <iostream>
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
+
 TransformComponent::TransformComponent(float scale, glm::vec3 position, glm::vec3 eulerAngles) : scale_(scale), position_(position), quaternion_(eulerAngles)
 {
+}
+
+void TransformComponent::recalculateMatrices(glm::mat4 viewMatrix)
+{
+    ViewModelMatrix_ = viewMatrix * glm::translate(position_) * glm::toMat4(quaternion_) * glm::scale(glm::vec3(scale_));
+}
+
+glm::mat4 TransformComponent::getViewModelMatrix() const
+{
+    return ViewModelMatrix_;
 }
 
 float TransformComponent::getScale() const

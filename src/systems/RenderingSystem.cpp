@@ -14,15 +14,103 @@ RenderingSystem::RenderingSystem()
 
 void RenderingSystem::update()
 {
+    recalculateMatrices();
+    frustumCullingFunction();
+    render();
+    renderBoundingBoxes();
+}
+
+void RenderingSystem::render()
+{
     auto activeScene = SceneManager::getInstance()->getActiveScene();
     World& world = activeScene->getWorld();
     auto& entities = world.getEntities();
     auto activeCamera = activeScene->getActiveCamera();
     auto& activeCameraComponent = activeCamera->getCameraComponent();
     glm::mat4 projectionMatrix = activeCameraComponent->getProjectionMatrix();
-    glm::mat4 viewMatrix = activeCameraComponent->getViewMatrix();
 
-    // FRUSTUM CULLING
+    mainShaderProgram_.useProgram();    // TODO IMPORTANT: po kolei renderowane wszystkie obiekty, sortowane po shader programie (jak najmniej przelaczen)
+    int nRenderedObjects = 0;
+    for (auto& entity : entities)
+    {
+        auto& transformComponent = entity->getTransformComponent();
+        auto& graphicsComponent = entity->getGraphicsComponent();
+        auto& cameraComponent = entity->getCameraComponent();
+        if (transformComponent && graphicsComponent && activeCamera)
+        {
+            if (!graphicsComponent->isSvoComponent()) continue;
+            if (!graphicsComponent->isVisible()) continue;
+            ++nRenderedObjects;
+
+            SVOComponent& svoComponent = (SVOComponent&) *graphicsComponent;
+
+            // TODO: W zale¿noœci od komponentu ustawiamy uniformy. Wyrzuciæ funkcjê graphicsComponent->setUniforms();
+            mainShaderProgram_.setUniform("MV", transformComponent->getViewModelMatrix());
+            mainShaderProgram_.setUniform("P", projectionMatrix);
+            mainShaderProgram_.setUniform("scale", transformComponent->getScale());
+            mainShaderProgram_.setUniform("gridLength", (float) svoComponent.getGridLength());
+
+            glBindVertexArray(svoComponent.getVAO());
+            glDrawArrays(GL_POINTS, 0, svoComponent.getDataSize());
+
+            //SPDLOG_DEBUG(spdlog::get("console"), "{0} {1} {2}", octreeFile_->getData()[1].color.x, octreeFile_->getData()[1].color.y, octreeFile_->getData()[1].color.z);
+        }
+    }
+}
+
+void RenderingSystem::renderBoundingBoxes()
+{
+    auto activeScene = SceneManager::getInstance()->getActiveScene();
+    World& world = activeScene->getWorld();
+    auto& entities = world.getEntities();
+    auto activeCamera = activeScene->getActiveCamera();
+    auto& activeCameraComponent = activeCamera->getCameraComponent();
+    glm::mat4 projectionMatrix = activeCameraComponent->getProjectionMatrix();
+
+    boundingBoxShaderProgram_.useProgram();
+    for (auto& entity : entities)
+    {
+        auto& transformComponent = entity->getTransformComponent();
+        auto& graphicsComponent = entity->getGraphicsComponent();
+        if (transformComponent && graphicsComponent && activeCamera)
+        {
+            if (!graphicsComponent->isVisible()) continue;
+            boundingBoxShaderProgram_.setUniform("MV", transformComponent->getViewModelMatrix());
+            boundingBoxShaderProgram_.setUniform("P", projectionMatrix);
+            glBindVertexArray(graphicsComponent->getBbVAO());
+            glDrawElements(GL_LINE_LOOP, 4, GL_UNSIGNED_SHORT, 0);
+            glDrawElements(GL_LINE_LOOP, 4, GL_UNSIGNED_SHORT, (GLvoid*)(4 * sizeof(GLushort)));
+            glDrawElements(GL_LINES, 8, GL_UNSIGNED_SHORT, (GLvoid*)(8 * sizeof(GLushort)));
+        }
+    }
+}
+
+void RenderingSystem::recalculateMatrices()
+{
+    auto activeScene = SceneManager::getInstance()->getActiveScene();
+    World& world = activeScene->getWorld();
+    auto& entities = world.getEntities();
+    auto activeCamera = activeScene->getActiveCamera();
+    auto& activeCameraComponent = activeCamera->getCameraComponent();
+    if (activeCameraComponent)
+    {
+        for (auto& entity : entities)
+        {
+            auto& transformComponent = entity->getTransformComponent();
+            if (transformComponent) transformComponent->recalculateMatrices(activeCameraComponent->getViewMatrix());
+        }
+    }
+}
+
+void RenderingSystem::frustumCullingFunction()
+{
+    auto activeScene = SceneManager::getInstance()->getActiveScene();
+    World& world = activeScene->getWorld();
+    auto& entities = world.getEntities();
+    auto activeCamera = activeScene->getActiveCamera();
+    auto& activeCameraComponent = activeCamera->getCameraComponent();
+    glm::mat4 projectionMatrix = activeCameraComponent->getProjectionMatrix();
+
     for (auto& entity : entities)
     {
         auto& transformComponent = entity->getTransformComponent();
@@ -33,10 +121,7 @@ void RenderingSystem::update()
             for (auto& bbVertex : graphicsComponent->getBoundingBoxVertices())
             {
                 // multiply boundingBox vertices by MVP
-                glm::mat4 modelMatrix = glm::translate(transformComponent->getPosition()) *
-                    glm::toMat4(transformComponent->getQuaternion()) *
-                    glm::scale(glm::vec3(transformComponent->getScale()));
-                auto transformedVertex = ((projectionMatrix * (viewMatrix * modelMatrix)) * bbVertex);
+                auto transformedVertex = (projectionMatrix * transformComponent->getViewModelMatrix() * bbVertex);
                 transformedVertex /= transformedVertex.w;
 
                 // TODO: edit this:
@@ -51,52 +136,6 @@ void RenderingSystem::update()
                 }
                 else graphicsComponent->setVisible(false);
             }
-            spdlog::get("console")->debug("End of bb vertices.");
         }
     }
-
-
-    mainShaderProgram_.useProgram();    // TODO IMPORTANT: po kolei renderowane wszystkie obiekty, sortowane po shader programie (jak najmniej przelaczen)
-    int nRenderedObjects = 0;
-    for (auto& entity : entities)
-    {
-        auto& transformComponent = entity->getTransformComponent();
-        auto& graphicsComponent = entity->getGraphicsComponent();
-        auto& cameraComponent = entity->getCameraComponent();
-        if (transformComponent && graphicsComponent && activeCamera)
-        {
-            if (!graphicsComponent->isVisible()) continue;
-            ++nRenderedObjects;
-
-            // TODO: W zale¿noœci od komponentu ustawiamy uniformy. Wyrzuciæ funkcjê graphicsComponent->setUniforms();
-            glm::mat4 modelMatrix = glm::translate(transformComponent->getPosition()) *
-                glm::toMat4(transformComponent->getQuaternion()) *
-                glm::scale(glm::vec3(transformComponent->getScale()));
-            mainShaderProgram_.setUniform("MV", viewMatrix * modelMatrix);
-            mainShaderProgram_.setUniform("P", projectionMatrix);
-            mainShaderProgram_.setUniform("scale", transformComponent->getScale());
-            graphicsComponent->setUniforms(mainShaderProgram_);
-            graphicsComponent->render();
-        }
-    }
-
-    boundingBoxShaderProgram_.useProgram();
-    for (auto& entity : entities)
-    {
-        auto& transformComponent = entity->getTransformComponent();
-        auto& graphicsComponent = entity->getGraphicsComponent();
-        if (transformComponent && graphicsComponent && activeCamera)
-        {
-            // TODO: if !visible continue
-
-            glm::mat4 modelMatrix = glm::translate(transformComponent->getPosition()) *
-                glm::toMat4(transformComponent->getQuaternion()) *
-                glm::scale(glm::vec3(transformComponent->getScale()));
-            boundingBoxShaderProgram_.setUniform("MV", viewMatrix * modelMatrix);
-            boundingBoxShaderProgram_.setUniform("P", projectionMatrix);
-            graphicsComponent->renderBoundingBox();
-        }
-    }
-
-    //spdlog::get("console")->debug("Rendered {0} objects.", nRenderedObjects);
 }

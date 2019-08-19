@@ -11,10 +11,8 @@ public:
     SVOComponent(std::string name);
     ~SVOComponent() = default;
 
-    virtual void setUniforms(ShaderProgram& shaderProgram);
-    virtual void render();
-
-    virtual void renderBoundingBox();
+    unsigned int getGridLength() const { return octreeFile_->getHeader().gridLength; }
+    size_t getDataSize() const { return octreeFile_->getData().size();  }
 
     void printOctreeNodeInfo();
 

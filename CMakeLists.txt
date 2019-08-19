@@ -13,7 +13,7 @@ endfunction(add_directory)
 
 ### Project information
 project(svo-renderer)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 ### Source information
 set(ROOT_SRC_DIR "src")

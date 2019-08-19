@@ -6,6 +6,8 @@
 
 SVOComponent::SVOComponent(std::string name)
 {
+    graphicsComponentType_ = GraphicsComponentType::GRAPHICS_COMPONENT_SVO;
+
     // Loading nodes to octreeFile_ structure
     octreeFile_ = std::make_unique<OctreeFile>(name);
     octree_ = std::make_unique<Octree>(*octreeFile_);
@@ -113,25 +115,4 @@ void SVOComponent::printOctreeNodeInfo()
         std::cout << std::endl;
         ++i;
     }
-}
-
-void SVOComponent::setUniforms(ShaderProgram& shaderProgram)
-{
-    shaderProgram.setUniform("gridLength", (float) octreeFile_->getHeader().gridLength);
-}
-
-void SVOComponent::render()
-{
-    glBindVertexArray(VAO_);
-    glDrawArrays(GL_POINTS, 0, octreeFile_->getData().size());
-
-    //SPDLOG_DEBUG(spdlog::get("console"), "{0} {1} {2}", octreeFile_->getData()[1].color.x, octreeFile_->getData()[1].color.y, octreeFile_->getData()[1].color.z);
-}
-
-void SVOComponent::renderBoundingBox()
-{
-    glBindVertexArray(bbVAO_);
-    glDrawElements(GL_LINE_LOOP, 4, GL_UNSIGNED_SHORT, 0);
-    glDrawElements(GL_LINE_LOOP, 4, GL_UNSIGNED_SHORT, (GLvoid*)(4 * sizeof(GLushort)));
-    glDrawElements(GL_LINES, 8, GL_UNSIGNED_SHORT, (GLvoid*)(8 * sizeof(GLushort)));
 }
