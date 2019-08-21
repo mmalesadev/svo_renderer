@@ -79,10 +79,10 @@ void ShaderProgram::loadShaderProgram(std::string shaderName)
 {
     Shader vertexShader, geometryShader, fragmentShader;// , commonShader;
 
-    bool vertexShaderLoaded = vertexShader.loadShader("data/shaders/" + shaderName + ".vert", GL_VERTEX_SHADER);
-    bool geometryShaderLoaded = geometryShader.loadShader("data/shaders/" + shaderName + ".geom", GL_GEOMETRY_SHADER);
-    bool fragmentShaderLoaded = fragmentShader.loadShader("data/shaders/" + shaderName + ".frag", GL_FRAGMENT_SHADER);
-    //commonShader.loadShader("data/shaders/common.frag", GL_FRAGMENT_SHADER);
+    bool vertexShaderLoaded = vertexShader.loadShader("../data/shaders/" + shaderName + ".vert", GL_VERTEX_SHADER);
+    bool geometryShaderLoaded = geometryShader.loadShader("../data/shaders/" + shaderName + ".geom", GL_GEOMETRY_SHADER);
+    bool fragmentShaderLoaded = fragmentShader.loadShader("../data/shaders/" + shaderName + ".frag", GL_FRAGMENT_SHADER);
+    //commonShader.loadShader("../data/shaders/common.frag", GL_FRAGMENT_SHADER);
 
     createProgram();
     if (vertexShaderLoaded) addShaderToProgram(&vertexShader);

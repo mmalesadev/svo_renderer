@@ -10,6 +10,13 @@ public:
     virtual void update();
 
 private:
+    void render();
+    void recalculateMatrices();
+    void frustumCullingFunction();
+    void renderBoundingBoxes();
+
+    void setMainShaderUniforms(const GraphicsComponent& graphicsComponent);
+
     ShaderProgram mainShaderProgram_;
     ShaderProgram boundingBoxShaderProgram_;
 

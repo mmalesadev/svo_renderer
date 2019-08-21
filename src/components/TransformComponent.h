@@ -6,6 +6,9 @@ class TransformComponent
 public:
     TransformComponent(float scale, glm::vec3 position, glm::vec3 eulerAngles);
 
+    void recalculateMatrices(glm::mat4 viewMatrix);
+    glm::mat4 getViewModelMatrix() const;
+
     float getScale() const;
 
     glm::vec3 getPosition() const;
@@ -18,4 +21,7 @@ private:
     float scale_;
     glm::vec3 position_;
     glm::quat quaternion_;
+
+    glm::mat4 modelMatrix_;
+    glm::mat4 ViewModelMatrix_;
 };
