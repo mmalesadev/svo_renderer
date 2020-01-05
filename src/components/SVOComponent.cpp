@@ -26,12 +26,12 @@ SVOComponent::SVOComponent(std::string name)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(OctreeFile::Data), (GLvoid*)offsetof(OctreeFile::Data, color));
     //printOctreeNodeInfo();
 
+
+    // Determining a bounding box.
     glGenVertexArrays(1, &bbVAO_);
     glGenBuffers(1, &bbVBO_);
     glGenBuffers(1, &bbEBO_);
 
-
-    // Determining a bounding box.
     // Skipping the first voxel (it's root voxel with (x,y,z) = (-0.5, -0.5, -0.5).
     GLfloat minX, minY, minZ, maxX, maxY, maxZ;
     minX = maxX = octreeData[1].position.x;
@@ -77,6 +77,66 @@ SVOComponent::SVOComponent(std::string name)
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(boundingCubeElements), boundingCubeElements, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+    // Bounding Sphere
+    glGenVertexArrays(1, &bsVAO_);
+    glGenBuffers(1, &bsVBO_);
+    glGenBuffers(1, &bsEBO_);
+
+    glm::vec3 midPoint(maxX - minX, maxY - minY, maxZ - minZ);
+    boundingSphereRadius_ = glm::length(midPoint - glm::vec3(maxX, maxY, maxZ));;
+    int sectorCount = 20;
+    int stackCount = 20;
+
+    float x, y, z, xy;                  // vertex position
+    float lengthInv = 1.0f / boundingSphereRadius_;    // vertex normal
+
+    float PI = std::acos(-1);
+
+    float sectorStep = 2 * PI / sectorCount;
+    float stackStep = PI / stackCount;
+    float sectorAngle, stackAngle;
+
+    for (int i = 0; i <= stackCount; ++i)
+    {
+        stackAngle = PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
+        xy = boundingSphereRadius_ * cosf(stackAngle);             // r * cos(u)
+        z = boundingSphereRadius_ * sinf(stackAngle);              // r * sin(u)
+
+        // add (sectorCount+1) vertices per stack
+        // the first and last vertices have same position and normal, but different tex coords
+        for (int j = 0; j <= sectorCount; ++j)
+        {
+            sectorAngle = j * sectorStep;           // starting from 0 to 2pi
+
+            // vertex position (x, y, z)
+            x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
+            y = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
+            boundingSphereVertices_.emplace_back(x, y, z);
+        }
+    }
+
+    for (int i = 0; i <= stackCount - 1; ++i)
+    {
+        for (int j = 0; j <= sectorCount - 1; ++j)
+        {
+            boundingSphereElements_.push_back((i + 1) * sectorCount + j);
+            boundingSphereElements_.push_back((i + 1)* sectorCount + (j + 1));
+            boundingSphereElements_.push_back(i* sectorCount + (j + 1));
+
+            boundingSphereElements_.push_back(i * sectorCount + (j + 1));
+            boundingSphereElements_.push_back(i * sectorCount + j);
+            boundingSphereElements_.push_back((i + 1)* sectorCount + j);
+        }
+    }
+
+    glBindVertexArray(bsVAO_);
+    glBindBuffer(GL_ARRAY_BUFFER, bsVBO_);
+    glBufferData(GL_ARRAY_BUFFER, boundingSphereVertices_.size() * sizeof(boundingSphereVertices_[0]), boundingSphereVertices_.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsEBO_);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, boundingSphereElements_.size() * sizeof(GLushort), boundingSphereElements_.data(), GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 }
 
 void SVOComponent::printOctreeNodeInfo()

@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 
 #include "TransformComponent.h"
+#include "Sphere.h"
 
 
 class CameraComponent
@@ -17,6 +18,8 @@ public:
     void setPerspectiveMatrix(float FoV, float ratio, float near, float far);
     void setOrthographicMatrix(float left, float right, float bottom, float top, float near, float far);
 
+    Sphere& getBoundingSphere() { return boundingSphere_; }
+
     glm::vec3 getDirection() const;
     glm::vec3 getUp() const;
     glm::vec3 getRight() const;
@@ -26,10 +29,17 @@ public:
     glm::mat4 getViewMatrix();
 
 private:
+    Sphere boundingSphere_;
+
     glm::vec3 direction_;
     glm::vec3 up_;
     glm::vec3 right_;
     float speed_;
     glm::mat4 projectionMatrix_;
     glm::mat4 viewMatrix_;
+
+    float near_;
+    float far_;
+    float FoV_;
+    float ratio_;
 };

@@ -8,6 +8,7 @@ RenderingSystem::RenderingSystem()
 {
     mainShaderProgram_.loadShaderProgram("main");
     boundingBoxShaderProgram_.loadShaderProgram("boundingbox");
+    boundingSphereShaderProgram_.loadShaderProgram("boundingsphere");
 
     windowSize_ = ProgramVariables::getWindowSize();
 }
@@ -17,7 +18,8 @@ void RenderingSystem::update()
     recalculateMatrices();
     frustumCullingFunction();
     render();
-    renderBoundingBoxes();
+    //renderBoundingBoxes();
+    renderBoundingSpheres();
 }
 
 void RenderingSystem::render()
@@ -85,6 +87,31 @@ void RenderingSystem::renderBoundingBoxes()
     }
 }
 
+void RenderingSystem::renderBoundingSpheres()
+{
+    auto activeScene = SceneManager::getInstance()->getActiveScene();
+    World& world = activeScene->getWorld();
+    auto& entities = world.getEntities();
+    auto activeCamera = activeScene->getActiveCamera();
+    auto& activeCameraComponent = activeCamera->getCameraComponent();
+    glm::mat4 projectionMatrix = activeCameraComponent->getProjectionMatrix();
+
+    boundingSphereShaderProgram_.useProgram();
+    for (auto& entity : entities)
+    {
+        auto& transformComponent = entity->getTransformComponent();
+        auto& graphicsComponent = entity->getGraphicsComponent();
+        if (transformComponent && graphicsComponent && activeCamera)
+        {
+            if (!graphicsComponent->isVisible()) continue;
+            boundingSphereShaderProgram_.setUniform("MV", transformComponent->getViewModelMatrix());
+            boundingSphereShaderProgram_.setUniform("P", projectionMatrix);
+            glBindVertexArray(graphicsComponent->getBsVAO());
+            glDrawElements(GL_LINE_LOOP, graphicsComponent->getBoundingSphereElements().size(), GL_UNSIGNED_SHORT, 0);
+        }
+    }
+}
+
 void RenderingSystem::recalculateMatrices()
 {
     auto activeScene = SceneManager::getInstance()->getActiveScene();
@@ -111,31 +138,23 @@ void RenderingSystem::frustumCullingFunction()
     auto& activeCameraComponent = activeCamera->getCameraComponent();
     glm::mat4 projectionMatrix = activeCameraComponent->getProjectionMatrix();
 
+    int nVisibleObjects = 0;
+
     for (auto& entity : entities)
     {
         auto& transformComponent = entity->getTransformComponent();
         auto& graphicsComponent = entity->getGraphicsComponent();
-        auto& cameraComponent = entity->getCameraComponent();
         if (transformComponent && graphicsComponent && activeCamera)
         {
-            for (auto& bbVertex : graphicsComponent->getBoundingBoxVertices())
+            Sphere entityBoundingSphere(transformComponent->getPosition(), graphicsComponent->getBoundingSphereRadius() * transformComponent->getScale());
+            if (activeCameraComponent->getBoundingSphere().intersects(entityBoundingSphere))
             {
-                // multiply boundingBox vertices by MVP
-                auto transformedVertex = (projectionMatrix * transformComponent->getViewModelMatrix() * bbVertex);
-                transformedVertex /= transformedVertex.w;
-
-                // TODO: edit this:
-                // check if transformed vertex is inside frustum
-                // optional???: [also check the Z with near/far - we dont want to render objects too far/behind us]
-                // if it is not inside the frustum -> mark graphics component as invisible? -> render only visible later!
-                if (transformedVertex.x > -1.0f && transformedVertex.x < 1.0f &&
-                    transformedVertex.y > -1.0f && transformedVertex.y < 1.0f)
-                {
-                    graphicsComponent->setVisible(true);
-                    break;
-                }
-                else graphicsComponent->setVisible(false);
+                graphicsComponent->setVisible(true);
+                ++nVisibleObjects;
             }
+            else graphicsComponent->setVisible(false);
         }
     }
+
+    std::cout << nVisibleObjects << "\n";
 }
