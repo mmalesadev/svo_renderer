@@ -5,6 +5,7 @@
 
 #include "TransformComponent.h"
 #include "Sphere.h"
+#include "Cone.h"
 
 
 class CameraComponent
@@ -19,6 +20,7 @@ public:
     void setOrthographicMatrix(float left, float right, float bottom, float top, float near, float far);
 
     Sphere& getBoundingSphere() { return boundingSphere_; }
+    Cone& getBoundingCone() { return boundingCone_; }
 
     glm::vec3 getDirection() const;
     glm::vec3 getUp() const;
@@ -30,6 +32,7 @@ public:
 
 private:
     Sphere boundingSphere_;
+    Cone boundingCone_;
 
     glm::vec3 direction_;
     glm::vec3 up_;
@@ -42,4 +45,7 @@ private:
     float far_;
     float FoV_;
     float ratio_;
+
+    int windowWidth_;
+    int windowHeight_;
 };

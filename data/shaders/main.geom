@@ -29,26 +29,21 @@ void main()
     vec4 voxelPosScreenSpace = P * voxelPosViewSpace;
     voxelPosScreenSpace /= voxelPosScreenSpace.w;
 
-    if (voxelPosScreenSpace.x > -1.0f && voxelPosScreenSpace.x < 1.0f &&
-        voxelPosScreenSpace.y > -1.0f && voxelPosScreenSpace.y < 1.0f)
-    {
-        vec2 bottomLeft = voxelPosViewSpace.xy + vec2(-0.5, -0.5) * voxelOffset;
-        gl_Position = P * vec4(bottomLeft, voxelPosViewSpace.zw);
-        EmitVertex();   
+    vec2 bottomLeft = voxelPosViewSpace.xy + vec2(-0.5, -0.5) * voxelOffset;
+    gl_Position = P * vec4(bottomLeft, voxelPosViewSpace.zw);
+    EmitVertex();   
 
-        vec2 bottomRight = voxelPosViewSpace.xy + vec2(0.5, -0.5) * voxelOffset;
-        gl_Position = P * vec4(bottomRight, voxelPosViewSpace.zw);
-        EmitVertex();
+    vec2 bottomRight = voxelPosViewSpace.xy + vec2(0.5, -0.5) * voxelOffset;
+    gl_Position = P * vec4(bottomRight, voxelPosViewSpace.zw);
+    EmitVertex();
 
-        vec2 topLeft = voxelPosViewSpace.xy + vec2(-0.5, 0.5) * voxelOffset;
-        gl_Position = P * vec4(topLeft, voxelPosViewSpace.zw);
-        EmitVertex();
+    vec2 topLeft = voxelPosViewSpace.xy + vec2(-0.5, 0.5) * voxelOffset;
+    gl_Position = P * vec4(topLeft, voxelPosViewSpace.zw);
+    EmitVertex();
 
-        vec2 topRight = voxelPosViewSpace.xy + vec2(0.5, 0.5) * voxelOffset;
-        gl_Position = P * vec4(topRight, voxelPosViewSpace.zw);
-        EmitVertex();
+    vec2 topRight = voxelPosViewSpace.xy + vec2(0.5, 0.5) * voxelOffset;
+    gl_Position = P * vec4(topRight, voxelPosViewSpace.zw);
+    EmitVertex();
 
-        EndPrimitive();
-
-    }
+    EndPrimitive();
 }

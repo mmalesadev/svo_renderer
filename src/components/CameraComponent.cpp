@@ -10,15 +10,15 @@ CameraComponent::CameraComponent(float speed) : speed_(speed)
 void CameraComponent::activate(TransformComponent& transformComponent)
 {
     std::pair<int, int> windowSize = ProgramVariables::getWindowSize();
-    int windowWidth = windowSize.first;
-    int windowHeight = windowSize.second;
+    windowWidth_ = windowSize.first;
+    windowHeight_ = windowSize.second;
 
     direction_ = glm::toMat3(transformComponent.getQuaternion()) * glm::vec3(0, 0, -1);
     right_ = glm::toMat3(transformComponent.getQuaternion()) * glm::vec3(1, 0, 0);
     up_ = glm::toMat3(transformComponent.getQuaternion()) * glm::vec3(0, 1, 0);
     setViewMatrix(transformComponent.getPosition(), transformComponent.getPosition() + direction_, up_);
 
-    setPerspectiveMatrix(45.0f, (float)windowWidth / (float)windowHeight, 0.2f, 4000.0f);
+    setPerspectiveMatrix(45.0f, (float)windowWidth_ / (float)windowHeight_, 0.2f, 4000.0f);
 }
 
 void CameraComponent::update(TransformComponent& transformComponent)
@@ -30,13 +30,25 @@ void CameraComponent::update(TransformComponent& transformComponent)
 
     // Constructing sphere bounding the camera frustum
     float viewLength = far_ - near_;
-    float farFrustumHeight = 0.5f * viewLength * glm::tan(FoV_ * glm::pi<float>() * 0.005555f * 0.5f);
+    float fovRadians = FoV_ * glm::pi<float>() * 0.005555f;
+    float farFrustumHeight = 0.5f * viewLength * glm::tan(fovRadians * 0.5f);
     float farFrustumWidth = ratio_ * farFrustumHeight;
     glm::vec3 P(0.0f, 0.0f, near_ + viewLength * 0.5f); // Center of the frustum
     glm::vec3 Q(farFrustumWidth, farFrustumHeight, viewLength); // Far corner of the frustum
     float radius = glm::length(P - Q);
     boundingSphere_.setRadius(radius);
     boundingSphere_.setPosition(transformComponent.getPosition() + direction_ * (near_ + 0.5f * viewLength));
+
+    // Constructing cone bounding the camera frustum
+    float halfWindowHeight = windowHeight_ * 0.5f;
+    float halfWindowWidth = windowWidth_ * 0.5f;
+    float depth = halfWindowHeight / glm::tan(fovRadians);
+    float corner = glm::sqrt(halfWindowWidth * halfWindowWidth + halfWindowWidth * halfWindowWidth);
+    float newFov = glm::atan(corner / depth);
+
+    boundingCone_.setAxis(direction_);
+    boundingCone_.setVertex(transformComponent.getPosition());
+    boundingCone_.setAngle(newFov);
 } 
 
 void CameraComponent::setPerspectiveMatrix(float FoV, float ratio, float zNear, float zFar)

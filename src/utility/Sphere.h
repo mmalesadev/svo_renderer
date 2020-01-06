@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
+#include "Cone.h"
 
 class Sphere
 {
@@ -13,6 +14,7 @@ public:
     void setRadius(float radius) { radius_ = radius; }
 
     bool intersects(Sphere& otherSphere);
+    bool intersects(Cone& cone);
 
 private:
     glm::vec3 position_;

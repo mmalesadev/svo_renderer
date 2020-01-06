@@ -9,17 +9,28 @@ RenderingSystem::RenderingSystem()
     mainShaderProgram_.loadShaderProgram("main");
     boundingBoxShaderProgram_.loadShaderProgram("boundingbox");
     boundingSphereShaderProgram_.loadShaderProgram("boundingsphere");
+    textShaderProgram_.loadShaderProgram("text");
 
     windowSize_ = ProgramVariables::getWindowSize();
+
+    debugText.init();
 }
 
 void RenderingSystem::update()
 {
     recalculateMatrices();
-    frustumCullingFunction();
+    globalFrustumCullingFunction();
     render();
     //renderBoundingBoxes();
-    renderBoundingSpheres();
+    //renderBoundingSpheres();
+
+    // Rendering debug text
+    debugText.setTextValue("Visible objects: " + std::to_string(nVisibleObjects_));
+    textShaderProgram_.useProgram();
+    textShaderProgram_.setUniform("textureSampler", 0);
+    textShaderProgram_.setUniform("windowWidth", windowSize_.first);
+    textShaderProgram_.setUniform("windowHeight", windowSize_.second);
+    debugText.render(0, windowSize_.second, 16);
 }
 
 void RenderingSystem::render()
@@ -129,7 +140,7 @@ void RenderingSystem::recalculateMatrices()
     }
 }
 
-void RenderingSystem::frustumCullingFunction()
+void RenderingSystem::globalFrustumCullingFunction()
 {
     auto activeScene = SceneManager::getInstance()->getActiveScene();
     World& world = activeScene->getWorld();
@@ -138,8 +149,7 @@ void RenderingSystem::frustumCullingFunction()
     auto& activeCameraComponent = activeCamera->getCameraComponent();
     glm::mat4 projectionMatrix = activeCameraComponent->getProjectionMatrix();
 
-    int nVisibleObjects = 0;
-
+    nVisibleObjects_ = 0;
     for (auto& entity : entities)
     {
         auto& transformComponent = entity->getTransformComponent();
@@ -149,12 +159,16 @@ void RenderingSystem::frustumCullingFunction()
             Sphere entityBoundingSphere(transformComponent->getPosition(), graphicsComponent->getBoundingSphereRadius() * transformComponent->getScale());
             if (activeCameraComponent->getBoundingSphere().intersects(entityBoundingSphere))
             {
-                graphicsComponent->setVisible(true);
-                ++nVisibleObjects;
+                Cone cameraBoundingCone = activeCameraComponent->getBoundingCone();
+                if (entityBoundingSphere.intersects(cameraBoundingCone))
+                {
+                    graphicsComponent->setVisible(true);
+                    ++nVisibleObjects_;
+                }
+                else graphicsComponent->setVisible(false);
             }
             else graphicsComponent->setVisible(false);
         }
     }
 
-    std::cout << nVisibleObjects << "\n";
 }

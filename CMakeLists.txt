@@ -117,6 +117,17 @@ else()
     message(SEND_ERROR "Libmorton was not found.")
 endif()
 
+# FreeImage
+set(DEFAULT_FREEIMAGE_DIR "FreeImage")
+find_path(FREEIMAGE_HEADERS_DIR FreeImage.h ${LIB_DIR}/${DEFAULT_FREEIMAGE_DIR}/include)
+find_library(FREEIMAGE_LIB FreeImage ${LIB_DIR}/${DEFAULT_FREEIMAGE_DIR}/${TARGET_SYSTEM})
+if(FREEIMAGE_HEADERS_DIR AND FREEIMAGE_LIB)
+    set(LIBS ${LIBS} ${FREEIMAGE_LIB})
+    include_directories( ${FREEIMAGE_HEADERS_DIR} )
+else()
+    message(SEND_ERROR "FreeImage was not found.")
+endif()
+
 ### Link target
 add_executable(svo-renderer "")
 target_sources(svo-renderer PRIVATE ${ALL_SRCS} ${SHADER_FILES})
