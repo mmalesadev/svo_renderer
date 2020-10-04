@@ -3,6 +3,8 @@
 #include "Shader.h"
 #include "ProgramVariables.h"
 #include "Text.h"
+#include "SVOComponent.h"
+#include "MeshComponent.h"
 
 class RenderingSystem : public System
 {

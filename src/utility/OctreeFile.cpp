@@ -46,12 +46,6 @@ OctreeFile::OctreeFile(std::string name)
     }
     octreeNodesFile.close();
 
-    int maxMortonLen = 0;
-    int mortonLen = 0;
-    int minMortonLen = 64;
-    uint64_t foundMorton;
-    uint64_t foundMinMorton;
-
     // DATA
     int minMortonNodesCount = 0;
     std::ifstream octreeDataFile("../data/" + name + ".octreedata", std::ios::binary);
@@ -62,7 +56,6 @@ OctreeFile::OctreeFile(std::string name)
             OctreeFile::Data data;
             uint64_t mortonCode;
             uint32_t gridPosition[3];
-            //octreeDataFile.read(reinterpret_cast<char*> (&(data)), sizeof(data));
             octreeDataFile.read(reinterpret_cast<char*> (&mortonCode), sizeof(uint64_t));
             morton3D_64_decode(mortonCode, gridPosition[0], gridPosition[1], gridPosition[2]);
             data.position.x = (1.0f / header_.gridLength) * (float)gridPosition[0] - 0.5f;
@@ -72,29 +65,6 @@ OctreeFile::OctreeFile(std::string name)
             octreeDataFile.read(reinterpret_cast<char*> (&data.normal), sizeof(glm::vec3));
             data.mortonCode = mortonCode;
             data_.push_back(data);
-            //spdlog::get("console")->debug("Node: {0}, {1}, {2}", data.gridPosition[0], data.gridPosition[1], data.gridPosition[2]);
-
-            for (uint64_t i = 0; i < 64; ++i)
-            {
-                uint64_t m = mortonCode;
-
-                if (m & (static_cast<uint64_t>(1) << i))
-                {
-                    mortonLen = i + 1;
-                }
-            }
-            if (mortonLen > maxMortonLen)
-            {
-                maxMortonLen = mortonLen;
-                foundMorton = mortonCode;
-            }
-            if (mortonLen < minMortonLen && mortonLen == 22)
-            {
-                minMortonLen = mortonLen;
-                foundMinMorton = mortonCode;
-            }
-
-            mortonLen = 0;
         }
     }
     else
@@ -103,12 +73,6 @@ OctreeFile::OctreeFile(std::string name)
         return;
     }
     octreeDataFile.close();
-
-    spdlog::get("console")->critical("Min morton len: {0}", minMortonLen);
-    std::cout << "Found: " << std::bitset<64>(foundMinMorton) << std::endl;
-    spdlog::get("console")->critical("Max morton len: {0}", maxMortonLen);
-    std::cout << "Found: " << std::bitset<64>(foundMorton) << std::endl;
-    spdlog::get("console")->critical("minMortonNodesCount: {0}", minMortonNodesCount);
     
     printLoadedOctree();
 }

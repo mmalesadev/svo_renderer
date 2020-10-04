@@ -32,6 +32,12 @@ void ProgramContext::init()
     {
         std::cout << "Error initializing GLEW: " << glewGetErrorString(glewErr) << std::endl;
     }
+
+    glfwSetWindowTitle(ProgramVariables::getWindow(), "svo-renderer");
+
+    /* Disable V-sync */
+    glfwSwapInterval(0);
+
     sceneManager_ = SceneManager::createInstance();
     sceneManager_->activateScene("default");
 

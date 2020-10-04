@@ -25,7 +25,23 @@ void RenderingSystem::update()
     //renderBoundingSpheres();
 
     // Rendering debug text
-    debugText.setTextValue("Visible objects: " + std::to_string(nVisibleObjects_));
+    auto& entities = SceneManager::getInstance()->getActiveScene()->getWorld().getEntities();
+    long long nVoxelsInWorld = 0;
+    for (auto& entity : entities)
+    {
+        auto& graphicsComponent = entity->getGraphicsComponent();
+        if (graphicsComponent)
+        {
+            if (graphicsComponent->isSvoComponent())
+            {
+                SVOComponent& svoComponent = (SVOComponent&)*graphicsComponent;
+                nVoxelsInWorld += svoComponent.getDataSize();
+            }
+        }
+    }
+
+
+    debugText.setTextValue("Visible objects: " + std::to_string(nVisibleObjects_) + ", voxels in world: " + std::to_string(nVoxelsInWorld));
     textShaderProgram_.useProgram();
     textShaderProgram_.setUniform("textureSampler", 0);
     textShaderProgram_.setUniform("windowWidth", windowSize_.first);
@@ -51,22 +67,26 @@ void RenderingSystem::render()
         auto& cameraComponent = entity->getCameraComponent();
         if (transformComponent && graphicsComponent && activeCamera)
         {
-            if (!graphicsComponent->isSvoComponent()) continue;
             if (!graphicsComponent->isVisible()) continue;
             ++nRenderedObjects;
 
-            SVOComponent& svoComponent = (SVOComponent&) *graphicsComponent;
+            if (graphicsComponent->isSvoComponent())
+            {
+                SVOComponent& svoComponent = (SVOComponent&)*graphicsComponent;
 
-            // TODO: W zale¿noœci od komponentu ustawiamy uniformy. Wyrzuciæ funkcjê graphicsComponent->setUniforms();
-            mainShaderProgram_.setUniform("MV", transformComponent->getViewModelMatrix());
-            mainShaderProgram_.setUniform("P", projectionMatrix);
-            mainShaderProgram_.setUniform("scale", transformComponent->getScale());
-            mainShaderProgram_.setUniform("gridLength", (float) svoComponent.getGridLength());
+                mainShaderProgram_.setUniform("MV", transformComponent->getViewModelMatrix());
+                mainShaderProgram_.setUniform("P", projectionMatrix);
+                mainShaderProgram_.setUniform("scale", transformComponent->getScale());
+                mainShaderProgram_.setUniform("gridLength", (float)svoComponent.getGridLength());
 
-            glBindVertexArray(svoComponent.getVAO());
-            glDrawArrays(GL_POINTS, 0, svoComponent.getDataSize());
+                glBindVertexArray(svoComponent.getVAO());
+                glDrawArrays(GL_POINTS, 0, svoComponent.getDataSize());
+            }
+            else if (graphicsComponent->isMeshComponent())
+            {
+                MeshComponent& meshComponent = (MeshComponent&)*graphicsComponent;
+            }
 
-            //SPDLOG_DEBUG(spdlog::get("console"), "{0} {1} {2}", octreeFile_->getData()[1].color.x, octreeFile_->getData()[1].color.y, octreeFile_->getData()[1].color.z);
         }
     }
 }

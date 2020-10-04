@@ -18,12 +18,14 @@ SVOComponent::SVOComponent(std::string name)
     glBindVertexArray(VAO_);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_);
     auto octreeData = octreeFile_->getData();
-    glBufferData(GL_ARRAY_BUFFER, octreeFile_->getData().size() * sizeof(OctreeFile::Data), &octreeData[0], GL_STATIC_DRAW); 
+    glBufferData(GL_ARRAY_BUFFER, (octreeFile_->getData().size()-1) * sizeof(OctreeFile::Data), &octreeData[0], GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(OctreeFile::Data), (GLvoid*)offsetof(OctreeFile::Data, position));
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(OctreeFile::Data), (GLvoid*)offsetof(OctreeFile::Data, color));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(OctreeFile::Data), (GLvoid*)offsetof(OctreeFile::Data, normal));
     //printOctreeNodeInfo();
 
 

@@ -5,7 +5,6 @@
 #include "GraphicsComponent.h"
 #include "TransformComponent.h"
 #include "CameraComponent.h"
-#include "SVOComponent.h"
 
 class Entity
 {

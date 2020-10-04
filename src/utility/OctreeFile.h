@@ -28,7 +28,6 @@ public:
     };
 
     struct Data {
-        //uint32_t gridPosition[3];
         glm::vec3 position;
         glm::vec3 color;
         glm::vec3 normal;

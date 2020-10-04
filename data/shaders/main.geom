@@ -24,6 +24,14 @@ void main()
     color = voxel[0].color;
     normal = voxel[0].normal;
 
+    vec4 normalViewSpace = MV * vec4(normal, 0);
+
+    // Skip the voxel if it's face is not seen by the camera
+    if (dot(vec3(0,0,0) - voxelPosViewSpace.xyz, normalViewSpace.xyz) < 0)
+    {
+        return;
+    }
+
     float voxelOffset = (scale/gridLength) * 1.414213;     // 1.414213 = sqrt(2)
 
     vec4 voxelPosScreenSpace = P * voxelPosViewSpace;
@@ -46,4 +54,5 @@ void main()
     EmitVertex();
 
     EndPrimitive();
+
 }
