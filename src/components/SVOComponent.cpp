@@ -34,7 +34,7 @@ SVOComponent::SVOComponent(std::string name)
     glGenBuffers(1, &bbVBO_);
     glGenBuffers(1, &bbEBO_);
 
-    // Skipping the first voxel (it's root voxel with (x,y,z) = (-0.5, -0.5, -0.5).
+    // Skipping the first voxel (it's root voxel with (x,y,z) = (-0.5, -0.5, -0.5)).
     GLfloat minX, minY, minZ, maxX, maxY, maxZ;
     minX = maxX = octreeData[1].position.x;
     minY = maxY = octreeData[1].position.y;
@@ -86,7 +86,7 @@ SVOComponent::SVOComponent(std::string name)
     glGenBuffers(1, &bsEBO_);
 
     glm::vec3 midPoint(maxX - minX, maxY - minY, maxZ - minZ);
-    boundingSphereRadius_ = glm::length(midPoint - glm::vec3(maxX, maxY, maxZ));;
+    boundingSphereRadius_ = glm::length(midPoint - glm::vec3(maxX, maxY, maxZ));
     int sectorCount = 20;
     int stackCount = 20;
 

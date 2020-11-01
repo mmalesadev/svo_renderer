@@ -62,6 +62,7 @@ OctreeFile::OctreeFile(std::string name)
             data.position.y = (1.0f / header_.gridLength) * (float)gridPosition[1] - 0.5f;
             data.position.z = (1.0f / header_.gridLength) * (float)gridPosition[2] - 0.5f;
             octreeDataFile.read(reinterpret_cast<char*> (&data.color), sizeof(glm::vec3));
+            //data.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
             octreeDataFile.read(reinterpret_cast<char*> (&data.normal), sizeof(glm::vec3));
             data.mortonCode = mortonCode;
             data_.push_back(data);

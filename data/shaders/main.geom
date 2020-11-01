@@ -26,7 +26,7 @@ void main()
 
     vec4 normalViewSpace = MV * vec4(normal, 0);
 
-    // Skip the voxel if it's face is not seen by the camera
+    // Skip the voxel if its face is not seen by the camera
     if (dot(vec3(0,0,0) - voxelPosViewSpace.xyz, normalViewSpace.xyz) < 0)
     {
         return;

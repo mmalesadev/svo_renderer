@@ -58,7 +58,13 @@ void RenderingSystem::render()
     auto& activeCameraComponent = activeCamera->getCameraComponent();
     glm::mat4 projectionMatrix = activeCameraComponent->getProjectionMatrix();
 
-    mainShaderProgram_.useProgram();    // TODO IMPORTANT: po kolei renderowane wszystkie obiekty, sortowane po shader programie (jak najmniej przelaczen)
+    mainShaderProgram_.useProgram();
+    glm::vec3 sunLightColor = glm::vec3(0.7f, 0.7f, 0.7f);
+    glm::vec4 sunDirection = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
+    GLfloat sunLightAmbientIntensity = 0.5f;
+    mainShaderProgram_.setUniform("sunLight.color", sunLightColor);
+    mainShaderProgram_.setUniform("sunLight.directionViewSpace", glm::vec3(activeCameraComponent->getViewMatrix() * sunDirection));
+    mainShaderProgram_.setUniform("sunLight.ambientIntensity", sunLightAmbientIntensity);
     int nRenderedObjects = 0;
     for (auto& entity : entities)
     {
