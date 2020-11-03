@@ -18,7 +18,7 @@ SVOComponent::SVOComponent(std::string name)
     glBindVertexArray(VAO_);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_);
     auto octreeData = octreeFile_->getData();
-    glBufferData(GL_ARRAY_BUFFER, (octreeFile_->getData().size()-1) * sizeof(OctreeFile::Data), &octreeData[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (octreeFile_->getData().size()-1) * sizeof(OctreeFile::Data), &octreeData[1], GL_STATIC_DRAW);    // We skip the first voxel, which is a root
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(OctreeFile::Data), (GLvoid*)offsetof(OctreeFile::Data, position));
@@ -27,7 +27,6 @@ SVOComponent::SVOComponent(std::string name)
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(OctreeFile::Data), (GLvoid*)offsetof(OctreeFile::Data, normal));
     //printOctreeNodeInfo();
-
 
     // Determining a bounding box.
     glGenVertexArrays(1, &bbVAO_);

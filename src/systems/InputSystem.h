@@ -9,13 +9,25 @@ public:
     virtual void update();
 
 private:
+    enum class InputMode { FREE_ROAM_MODE, GUI_MODE };
     enum class MovementType { MOVE_FORWARD, MOVE_BACKWARD, MOVE_LEFT, MOVE_RIGHT, MOVE_UP, MOVE_DOWN, ROLL_LEFT, ROLL_RIGHT};
-    void moveActiveCamera(MovementType movementType);
 
+    void moveActiveCamera(MovementType movementType);
+    void toggleFreeRoam();
+
+    void prepareGlfwKeyMaps();
     void loadActionKeyMapFromSqliteDb();
     void addActionKey(std::string action, std::string key);
 
-    std::map<std::string, std::string> keyActionMap_;
-    std::map<std::string, std::function<void(void)>> actionMap_;
-    std::map<std::string, int> glfwKeyMap_;
+    void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
+    std::unordered_map<std::string, std::string> actionKeyMap_;
+    std::unordered_map<std::string, std::string> actionKeyMapReverse_;
+    typedef std::unordered_map<InputMode, std::unordered_map<std::string, std::function<void(void)> > > InputModeActionMap;
+    InputModeActionMap actionMap_;
+    InputModeActionMap keyCallbackActionMap_;
+    std::unordered_map<std::string, int> glfwKeyMap_;
+    std::unordered_map<int, std::string> glfwKeyMapReverse_;
+
+    InputMode inputMode_;
 };

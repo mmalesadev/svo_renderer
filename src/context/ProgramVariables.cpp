@@ -7,7 +7,7 @@ void ProgramVariables::init()
 {
     GLFWmonitor * monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode * desktop = glfwGetVideoMode(monitor);
-    window_ = glfwCreateWindow(desktop->width, desktop->height, "title", nullptr, nullptr);
+    window_ = glfwCreateWindow(desktop->width, desktop->height, "svo-renderer", nullptr, nullptr);
 
     glfwSetInputMode(window_, GLFW_STICKY_KEYS, GLFW_TRUE);
     glfwMakeContextCurrent(window_);
@@ -22,7 +22,8 @@ void ProgramVariables::init()
     glClearDepth(1.0);
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
-    glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);;
+    glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+    glfwSwapInterval(0);    // Disable vsync
 }
 
 GLFWwindow * ProgramVariables::getWindow()

@@ -3,42 +3,58 @@
 #include <functional>
 #include <sqlite3.h>
 
-InputSystem::InputSystem()
+InputSystem::InputSystem() : inputMode_(InputMode::FREE_ROAM_MODE)
 {
-    // Possible keys used in program are defined here:
-    glfwKeyMap_["W"] = GLFW_KEY_W;
-    glfwKeyMap_["S"] = GLFW_KEY_S;
-    glfwKeyMap_["A"] = GLFW_KEY_A;
-    glfwKeyMap_["D"] = GLFW_KEY_D;
-    glfwKeyMap_["Q"] = GLFW_KEY_Q;
-    glfwKeyMap_["E"] = GLFW_KEY_E;
-    glfwKeyMap_["LCTRL"] = GLFW_KEY_LEFT_CONTROL;
-    glfwKeyMap_["SPACE"] = GLFW_KEY_SPACE;
+    prepareGlfwKeyMaps();
 
     // Possible actions are defined here:
-    actionMap_["MOVE_CAMERA_FORWARD"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::MOVE_FORWARD);
-    actionMap_["MOVE_CAMERA_BACKWARD"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::MOVE_BACKWARD);;
-    actionMap_["MOVE_CAMERA_LEFT"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::MOVE_LEFT);
-    actionMap_["MOVE_CAMERA_RIGHT"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::MOVE_RIGHT);
-    actionMap_["ROLL_CAMERA_LEFT"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::ROLL_LEFT);
-    actionMap_["ROLL_CAMERA_RIGHT"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::ROLL_RIGHT);
-    actionMap_["MOVE_CAMERA_UP"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::MOVE_UP);
-    actionMap_["MOVE_CAMERA_DOWN"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::MOVE_DOWN);
+    actionMap_[InputMode::FREE_ROAM_MODE]["MOVE_CAMERA_FORWARD"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::MOVE_FORWARD);
+    actionMap_[InputMode::FREE_ROAM_MODE]["MOVE_CAMERA_BACKWARD"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::MOVE_BACKWARD);;
+    actionMap_[InputMode::FREE_ROAM_MODE]["MOVE_CAMERA_LEFT"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::MOVE_LEFT);
+    actionMap_[InputMode::FREE_ROAM_MODE]["MOVE_CAMERA_RIGHT"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::MOVE_RIGHT);
+    actionMap_[InputMode::FREE_ROAM_MODE]["ROLL_CAMERA_LEFT"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::ROLL_LEFT);
+    actionMap_[InputMode::FREE_ROAM_MODE]["ROLL_CAMERA_RIGHT"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::ROLL_RIGHT);
+    actionMap_[InputMode::FREE_ROAM_MODE]["MOVE_CAMERA_UP"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::MOVE_UP);
+    actionMap_[InputMode::FREE_ROAM_MODE]["MOVE_CAMERA_DOWN"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::MOVE_DOWN);
+
+    keyCallbackActionMap_[InputMode::FREE_ROAM_MODE]["TOGGLE_FREE_ROAM"] = std::bind(&InputSystem::toggleFreeRoam, this);
+    keyCallbackActionMap_[InputMode::GUI_MODE]["TOGGLE_FREE_ROAM"] = std::bind(&InputSystem::toggleFreeRoam, this);
     
     loadActionKeyMapFromSqliteDb();
+
+    auto keyCallback = [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+        auto me = (InputSystem*)glfwGetWindowUserPointer(window);
+        me->keyCallback(window, key, scancode, action, mods);
+    };
+    glfwSetWindowUserPointer(ProgramVariables::getWindow(), this);
+    glfwSetKeyCallback(ProgramVariables::getWindow(), keyCallback);
+    glfwSetInputMode(ProgramVariables::getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
+
+void InputSystem::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (action == GLFW_PRESS)
+    {
+        auto& actionFunc = keyCallbackActionMap_[inputMode_][actionKeyMapReverse_[glfwKeyMapReverse_[key]]];
+        if (actionFunc) actionFunc();
+    }
 }
 
 void InputSystem::update()
 {
-    // Checking all possible keys pressed and executing assigned actions
-    for (auto it = keyActionMap_.begin(); it != keyActionMap_.end(); ++it)
+    // Check all possible actions for this mode
+    for (auto action : actionMap_[inputMode_])
     {
-        if (glfwGetKey(ProgramVariables::getWindow(), glfwKeyMap_[it->first]) == GLFW_PRESS)
+        if (glfwGetKey(ProgramVariables::getWindow(), glfwKeyMap_[actionKeyMap_[action.first]]) == GLFW_PRESS)
         {
-            auto& actionFunc = actionMap_[keyActionMap_[it->first]];
-            if(actionFunc) actionFunc();
+            auto& actionFunc = action.second;
+            if (actionFunc) actionFunc();
         }
     }
+
+    // If it's GUI_MODE, we dont do the mouse camera movement
+    if (inputMode_ == InputMode::GUI_MODE)
+        return;
 
     // Mouse movement - rotating camera 
     double xPos, yPos;
@@ -108,6 +124,41 @@ void InputSystem::moveActiveCamera(MovementType movementType)
     }
 }
 
+void InputSystem::toggleFreeRoam()
+{
+    if (inputMode_ == InputMode::FREE_ROAM_MODE)
+    {
+        inputMode_ = InputMode::GUI_MODE;
+        glfwSetInputMode(ProgramVariables::getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+    else if (inputMode_ == InputMode::GUI_MODE)
+    {
+        inputMode_ = InputMode::FREE_ROAM_MODE;
+        int width, height;
+        glfwGetWindowSize(ProgramVariables::getWindow(), &width, &height);
+        glfwSetCursorPos(ProgramVariables::getWindow(), width / 2, height / 2);
+        glfwSetInputMode(ProgramVariables::getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+}
+
+void InputSystem::prepareGlfwKeyMaps()
+{
+    // Possible keys used in program are defined here:
+    glfwKeyMap_["W"] = GLFW_KEY_W;
+    glfwKeyMap_["S"] = GLFW_KEY_S;
+    glfwKeyMap_["A"] = GLFW_KEY_A;
+    glfwKeyMap_["D"] = GLFW_KEY_D;
+    glfwKeyMap_["Q"] = GLFW_KEY_Q;
+    glfwKeyMap_["E"] = GLFW_KEY_E;
+    glfwKeyMap_["R"] = GLFW_KEY_R;
+    glfwKeyMap_["LCTRL"] = GLFW_KEY_LEFT_CONTROL;
+    glfwKeyMap_["SPACE"] = GLFW_KEY_SPACE;
+
+    // Reverse keymap, needed for fast key lookup by GLFW value, needed for key callback
+    for (auto mapping : glfwKeyMap_)
+        glfwKeyMapReverse_[mapping.second] = mapping.first;
+}
+
 void InputSystem::loadActionKeyMapFromSqliteDb()
 {
     sqlite3* db;
@@ -154,5 +205,6 @@ void InputSystem::loadActionKeyMapFromSqliteDb()
 
 void InputSystem::addActionKey(std::string action, std::string key)
 {
-    keyActionMap_[key] = action;
+    actionKeyMap_[action] = key;
+    actionKeyMapReverse_[key] = action;
 }

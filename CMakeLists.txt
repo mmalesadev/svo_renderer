@@ -26,6 +26,7 @@ add_directory("${ROOT_SRC_DIR}/components")
 add_directory("${ROOT_SRC_DIR}/world")
 add_directory("${ROOT_SRC_DIR}/context")
 add_directory("${ROOT_SRC_DIR}/utility")
+add_directory("${ROOT_SRC_DIR}/gui")
 
 # Shaders
 file(GLOB SHADER_FILES ${CMAKE_SOURCE_DIR}/res/shaders/*.vert ${CMAKE_SOURCE_DIR}/res/shaders/*.frag ${CMAKE_SOURCE_DIR}/res/shaders/*.geom)
@@ -129,6 +130,9 @@ else()
 endif()
 
 ### Link target
+if(MSVC)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+endif()
 add_executable(svo-renderer "")
 target_sources(svo-renderer PRIVATE ${ALL_SRCS} ${SHADER_FILES})
 
@@ -164,6 +168,7 @@ add_directory("${ROOT_SRC_DIR}/components")
 add_directory("${ROOT_SRC_DIR}/world")
 add_directory("${ROOT_SRC_DIR}/context")
 add_directory("${ROOT_SRC_DIR}/utility")
+add_directory("${ROOT_SRC_DIR}/gui")
 
 add_executable(svo-renderer-tests ${ALL_SRCS} ${SHADER_FILES})
 target_link_libraries(svo-renderer-tests ${LIBS} ${LINKER_FLAGS})

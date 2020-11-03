@@ -40,7 +40,6 @@ void RenderingSystem::update()
         }
     }
 
-
     debugText.setTextValue("Visible objects: " + std::to_string(nVisibleObjects_) + ", voxels in world: " + std::to_string(nVoxelsInWorld));
     textShaderProgram_.useProgram();
     textShaderProgram_.setUniform("textureSampler", 0);
@@ -86,7 +85,7 @@ void RenderingSystem::render()
                 mainShaderProgram_.setUniform("gridLength", (float)svoComponent.getGridLength());
 
                 glBindVertexArray(svoComponent.getVAO());
-                glDrawArrays(GL_POINTS, 0, svoComponent.getDataSize());
+                glDrawArrays(GL_POINTS, 0, svoComponent.getDataSize()-1);
             }
             else if (graphicsComponent->isMeshComponent())
             {

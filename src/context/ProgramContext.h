@@ -17,6 +17,8 @@ private:
     int FPScount_ = 0;
 
     std::vector<std::unique_ptr<System>> systems_;
+
+    GLFWwindow* window_;
     
     static void errorCallback(int error, const char * description);
 
