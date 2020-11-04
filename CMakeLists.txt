@@ -129,6 +129,15 @@ else()
     message(SEND_ERROR "FreeImage was not found.")
 endif()
 
+# STB
+set(DEFAULT_STB_DIR "stb")
+find_path(STB_HEADERS_DIR stb_image.h ${LIB_DIR}/${DEFAULT_STB_DIR})
+if(STB_HEADERS_DIR)
+    include_directories( ${STB_HEADERS_DIR} )
+else()
+    message(SEND_ERROR "STB was not found.")
+endif()
+
 ### Link target
 if(MSVC)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
@@ -170,5 +179,5 @@ add_directory("${ROOT_SRC_DIR}/context")
 add_directory("${ROOT_SRC_DIR}/utility")
 add_directory("${ROOT_SRC_DIR}/gui")
 
-add_executable(svo_renderer-tests ${ALL_SRCS} ${SHADER_FILES})
-target_link_libraries(svo_renderer-tests ${LIBS} ${LINKER_FLAGS})
+add_executable(svo_renderer_tests ${ALL_SRCS} ${SHADER_FILES})
+target_link_libraries(svo_renderer_tests ${LIBS} ${LINKER_FLAGS})

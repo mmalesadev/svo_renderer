@@ -14,8 +14,6 @@ class ProgramContext
 private:
     std::unique_ptr<SceneManager> sceneManager_;
 
-    int FPScount_ = 0;
-
     std::vector<std::unique_ptr<System>> systems_;
 
     GLFWwindow* window_;

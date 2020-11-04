@@ -6,8 +6,12 @@ float ProgramVariables::deltaTime_;
 void ProgramVariables::init()
 {
     GLFWmonitor * monitor = glfwGetPrimaryMonitor();
-    const GLFWvidmode * desktop = glfwGetVideoMode(monitor);
-    window_ = glfwCreateWindow(desktop->width, desktop->height, "svo_renderer", nullptr, nullptr);
+    const GLFWvidmode * mode = glfwGetVideoMode(monitor);
+    glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+    glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+    glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+    glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+    window_ = glfwCreateWindow(mode->width, mode->height, "SVO Renderer", monitor, nullptr);
 
     glfwSetInputMode(window_, GLFW_STICKY_KEYS, GLFW_TRUE);
     glfwMakeContextCurrent(window_);
@@ -16,7 +20,7 @@ void ProgramVariables::init()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-    glfwSetCursorPos(window_, desktop->width / 2, desktop->height / 2);
+    glfwSetCursorPos(window_, mode->width / 2, mode->height / 2);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
     glClearDepth(1.0);

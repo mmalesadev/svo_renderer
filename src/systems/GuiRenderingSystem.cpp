@@ -11,8 +11,10 @@ GuiRenderingSystem::GuiRenderingSystem(std::vector< std::pair<std::string, std::
     const char* glsl_version = "#version 130";
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImGui::StyleColorsDark();
+
+    ImGui::StyleColorsCustom();
     ImGui_ImplGlfw_InitForOpenGL(ProgramVariables::getWindow(), true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
@@ -44,7 +46,11 @@ void GuiRenderingSystem::render()
     if (show_demo_window)
         ImGui::ShowDemoWindow(&show_demo_window);
 
-    ImGui::Begin("Menu");
+    ImGui::Begin("Menu", 0, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+    if (ImGui::CollapsingHeader("Info", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::Text("%.0f FPS", ImGui::GetIO().Framerate);
+    }
     if (ImGui::CollapsingHeader("World", ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::Columns(1);

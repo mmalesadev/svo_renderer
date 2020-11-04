@@ -2,6 +2,8 @@
 #include "WorldRenderingSystem.h"
 #include "GuiRenderingSystem.h"
 #include "InputSystem.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 #include <iostream>
 #include <memory>
@@ -37,6 +39,11 @@ void ProgramContext::init()
         std::cout << "Error initializing GLEW: " << glewGetErrorString(glewErr) << std::endl;
     }
 
+    GLFWimage iconImages[1];
+    iconImages[0].pixels = stbi_load("../data/icons/svo_renderer_icon.png", &iconImages[0].width, &iconImages[0].height, 0, 4);
+    glfwSetWindowIcon(window_, 1, iconImages);
+    stbi_image_free(iconImages[0].pixels);
+
     sceneManager_ = SceneManager::createInstance();
     sceneManager_->activateScene("default");
 
@@ -53,7 +60,6 @@ void ProgramContext::run()
     while (!glfwWindowShouldClose(window_))
     {
         static GLdouble lastTime = glfwGetTime();
-        static GLdouble fpsLastTime = 0;
         GLdouble currentTime = glfwGetTime();
         ProgramVariables::setDeltaTime(GLfloat(currentTime - lastTime));
 
@@ -62,13 +68,6 @@ void ProgramContext::run()
         // Update the systems
         for (auto& system : systems_) system->update();
 
-        ++FPScount_;
-        if (currentTime - fpsLastTime >= 1)
-        {
-            glfwSetWindowTitle(window_, std::to_string(FPScount_).c_str());
-            FPScount_ = 0;
-            fpsLastTime = currentTime;
-        }
         lastTime = currentTime;
 
         glfwSwapBuffers(window_);
