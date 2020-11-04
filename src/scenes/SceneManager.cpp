@@ -57,7 +57,7 @@ void SceneManager::loadSceneFromSqliteDb(std::string sceneName)
     int returnCode = sqlite3_open("../data/database.db", &db);
     if (returnCode)
     {
-        spdlog::get("console")->critical("Can't open database: {0}", sqlite3_errmsg(db));
+        spdlog::get("logger")->critical("Can't open database: {0}", sqlite3_errmsg(db));
         sqlite3_close(db);
         return;
     }
@@ -66,8 +66,8 @@ void SceneManager::loadSceneFromSqliteDb(std::string sceneName)
 
     auto& loadSceneEntityFromDbCb = [](void *world, int count, char **data, char **columns)
     {
-        SPDLOG_DEBUG(spdlog::get("console"), "Loading entity from DB.");
-        for (int i = 0; i < count; ++i) SPDLOG_DEBUG(spdlog::get("console"), "{0} = {1}", columns[i], data[i] ? data[i] : nullptr);
+        SPDLOG_DEBUG(spdlog::get("logger"), "Loading entity from DB.");
+        for (int i = 0; i < count; ++i) SPDLOG_DEBUG(spdlog::get("logger"), "{0} = {1}", columns[i], data[i] ? data[i] : nullptr);
 
         // CONSTRUCTING ENTITY FROM COMPONENTS 
         // TODO: Przerzuæ do entity creator
@@ -83,12 +83,12 @@ void SceneManager::loadSceneFromSqliteDb(std::string sceneName)
         std::string graphicsComponentType(data[2]);
         if (graphicsComponentType == "svo")
         {
-            SPDLOG_DEBUG(spdlog::get("console"), "Constructing SVOComponent. Name: {0}", data[1]);
+            SPDLOG_DEBUG(spdlog::get("logger"), "Constructing SVOComponent. Name: {0}", data[1]);
             newGraphicsComponent = std::make_unique<SVOComponent>(data[1]);
         }
         else if (graphicsComponentType == "mesh")
         {
-            SPDLOG_DEBUG(spdlog::get("console"), "Constructing Mesh. Name: {0}", data[1]);
+            SPDLOG_DEBUG(spdlog::get("logger"), "Constructing Mesh. Name: {0}", data[1]);
             newGraphicsComponent = std::make_unique<MeshComponent>(data[1]);
         }
         std::string cameraComponentType(data[10]);
@@ -99,7 +99,7 @@ void SceneManager::loadSceneFromSqliteDb(std::string sceneName)
 
         static_cast<World*>(world)->getEntities().push_back(std::make_unique<Entity>(
             std::stoi(data[0]),        // id
-            data[1],                // name
+            std::string(data[1]),                // name
             newTransformComponent,
             newGraphicsComponent,
             newCameraComponent
@@ -119,7 +119,7 @@ void SceneManager::loadSceneFromSqliteDb(std::string sceneName)
 
     if (returnCode != SQLITE_OK)
     {
-        spdlog::get("console")->critical("SQL error: {0}", sqlQueryErrorMsg);
+        spdlog::get("logger")->critical("SQL error: {0}", sqlQueryErrorMsg);
         sqlite3_free(sqlQueryErrorMsg);
     }
     sqlite3_close(db);

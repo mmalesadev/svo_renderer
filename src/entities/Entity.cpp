@@ -1,24 +1,24 @@
 #include "Entity.h"
 
-Entity::Entity(unsigned int id, std::string name, std::unique_ptr<TransformComponent>& transformComponent, std::unique_ptr<GraphicsComponent>& graphicsComponent, std::unique_ptr<CameraComponent>& cameraComponent)
-    : transformComponent_(std::move(transformComponent)), graphicsComponent_(std::move(graphicsComponent)), cameraComponent_(std::move(cameraComponent))
+Entity::Entity(unsigned int id, std::string name, std::unique_ptr<TransformComponent>& transformComponent, 
+    std::unique_ptr<GraphicsComponent>& graphicsComponent, std::unique_ptr<CameraComponent>& cameraComponent)
+    : transformComponent_(std::move(transformComponent)), 
+    graphicsComponent_(std::move(graphicsComponent)), 
+    cameraComponent_(std::move(cameraComponent)),
+    id_(id),
+    name_(name)
 {
-    SPDLOG_DEBUG(spdlog::get("console"), "Constructing entity. id: {0}, name: {1}", id, name);
+    SPDLOG_DEBUG(spdlog::get("logger"), "Constructing entity. id: {0}, name: {1}", id, name);
 }
 
 Entity::~Entity()
 {
-    SPDLOG_DEBUG(spdlog::get("console"), "Destructing entity.");
+    SPDLOG_DEBUG(spdlog::get("logger"), "Destructing entity.");
 }
 
 Entity::Entity(const Entity &)
 {
-    SPDLOG_DEBUG(spdlog::get("console"), "Copy constructing entity.");
-}
-
-std::string Entity::getName()
-{
-    return name_;
+    SPDLOG_DEBUG(spdlog::get("logger"), "Copy constructing entity.");
 }
 
 std::unique_ptr<TransformComponent>& Entity::getTransformComponent()

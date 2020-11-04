@@ -3,11 +3,11 @@
 #include <functional>
 #include <sqlite3.h>
 
-InputSystem::InputSystem() : inputMode_(InputMode::FREE_ROAM_MODE)
+InputSystem::InputSystem() : inputMode_(InputMode::GUI_MODE)
 {
     prepareGlfwKeyMaps();
 
-    // Possible actions are defined here:
+    // Possible actions are defined here
     actionMap_[InputMode::FREE_ROAM_MODE]["MOVE_CAMERA_FORWARD"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::MOVE_FORWARD);
     actionMap_[InputMode::FREE_ROAM_MODE]["MOVE_CAMERA_BACKWARD"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::MOVE_BACKWARD);;
     actionMap_[InputMode::FREE_ROAM_MODE]["MOVE_CAMERA_LEFT"] = std::bind(&InputSystem::moveActiveCamera, this, MovementType::MOVE_LEFT);
@@ -28,7 +28,33 @@ InputSystem::InputSystem() : inputMode_(InputMode::FREE_ROAM_MODE)
     };
     glfwSetWindowUserPointer(ProgramVariables::getWindow(), this);
     glfwSetKeyCallback(ProgramVariables::getWindow(), keyCallback);
-    glfwSetInputMode(ProgramVariables::getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    if (inputMode_ == InputMode::FREE_ROAM_MODE) glfwSetInputMode(ProgramVariables::getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    actionLabels_["MOVE_CAMERA_FORWARD"] = "Forward";
+    actionLabels_["MOVE_CAMERA_BACKWARD"] = "Backward";
+    actionLabels_["MOVE_CAMERA_LEFT"] = "Left";
+    actionLabels_["MOVE_CAMERA_RIGHT"] = "Right";
+    actionLabels_["ROLL_CAMERA_LEFT"] = "Roll left";
+    actionLabels_["ROLL_CAMERA_RIGHT"] = "Roll right";
+    actionLabels_["MOVE_CAMERA_UP"] = "Up";
+    actionLabels_["MOVE_CAMERA_DOWN"] = "Down";
+    actionLabels_["TOGGLE_FREE_ROAM"] = "Toggle free roam";
+
+    auto addActionToActionsInfoList = [this](std::string action) -> void
+    {
+        actionList_.push_back({ actionLabels_[action], actionKeyMap_[action] });
+    };
+
+    addActionToActionsInfoList("MOVE_CAMERA_FORWARD");
+    addActionToActionsInfoList("MOVE_CAMERA_BACKWARD");
+    addActionToActionsInfoList("MOVE_CAMERA_LEFT");
+    addActionToActionsInfoList("MOVE_CAMERA_RIGHT");
+    addActionToActionsInfoList("MOVE_CAMERA_UP");
+    addActionToActionsInfoList("MOVE_CAMERA_DOWN");
+    addActionToActionsInfoList("ROLL_CAMERA_LEFT");
+    addActionToActionsInfoList("ROLL_CAMERA_RIGHT");
+    addActionToActionsInfoList("TOGGLE_FREE_ROAM");
 }
 
 void InputSystem::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -165,15 +191,15 @@ void InputSystem::loadActionKeyMapFromSqliteDb()
     int returnCode = sqlite3_open("../data/database.db", &db);
     if (returnCode)
     {
-        spdlog::get("console")->critical("Can't open database: {0}", sqlite3_errmsg(db));
+        spdlog::get("logger")->critical("Can't open database: {0}", sqlite3_errmsg(db));
         sqlite3_close(db);
         return;
     }
 
     auto& loadActionKeysFromDbCb = [](void *inputSystem, int count, char **data, char **columns)
     {
-        SPDLOG_DEBUG(spdlog::get("console"), "Loading action keys from DB.");
-        for (int i = 0; i < count; ++i) SPDLOG_DEBUG(spdlog::get("console"), "{0} = {1}", columns[i], data[i] ? data[i] : nullptr);
+        SPDLOG_DEBUG(spdlog::get("logger"), "Loading action keys from DB.");
+        for (int i = 0; i < count; ++i) SPDLOG_DEBUG(spdlog::get("logger"), "{0} = {1}", columns[i], data[i] ? data[i] : nullptr);
         static_cast<InputSystem*>(inputSystem)->addActionKey(std::string(data[0]), std::string(data[1]));
         return 0;
     };
@@ -189,18 +215,10 @@ void InputSystem::loadActionKeyMapFromSqliteDb()
 
     if (returnCode != SQLITE_OK)
     {
-        spdlog::get("console")->critical("SQL error: {0}", sqlQueryErrorMsg);
+        spdlog::get("logger")->critical("SQL error: {0}", sqlQueryErrorMsg);
         sqlite3_free(sqlQueryErrorMsg);
     }
     sqlite3_close(db);
-
-    // TODO: Zmieniaæ dziedzinê mappingów (czyli actionMap) 
-    // w zale¿noœci od sceny w jakiej aktualnie jesteœmy
-    // (albo te¿ innych zmiennych?) Daæ mapê z map¹ <sceneName, mapa_dziedziny>?
-    // Iterowac tylko po mapie danej sceny
-
-    // TODO: wyrzuciæ i wczytaæ z bazy jak bd dzia³aæ
-    //actionMap_["moveCameraForward"] = moveCameraForward;;
 }
 
 void InputSystem::addActionKey(std::string action, std::string key)

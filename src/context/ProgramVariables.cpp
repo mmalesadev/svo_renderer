@@ -7,7 +7,7 @@ void ProgramVariables::init()
 {
     GLFWmonitor * monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode * desktop = glfwGetVideoMode(monitor);
-    window_ = glfwCreateWindow(desktop->width, desktop->height, "svo-renderer", nullptr, nullptr);
+    window_ = glfwCreateWindow(desktop->width, desktop->height, "svo_renderer", nullptr, nullptr);
 
     glfwSetInputMode(window_, GLFW_STICKY_KEYS, GLFW_TRUE);
     glfwMakeContextCurrent(window_);

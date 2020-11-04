@@ -12,7 +12,7 @@ function(add_directory directory)
 endfunction(add_directory)
 
 ### Project information
-project(svo-renderer)
+project(svo_renderer)
 set(CMAKE_CXX_STANDARD 17)
 
 ### Source information
@@ -133,14 +133,14 @@ endif()
 if(MSVC)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 endif()
-add_executable(svo-renderer "")
-target_sources(svo-renderer PRIVATE ${ALL_SRCS} ${SHADER_FILES})
+add_executable(svo_renderer "")
+target_sources(svo_renderer PRIVATE ${ALL_SRCS} ${SHADER_FILES})
 
 set(LINKER_FLAGS)
 if(UNIX)
     set(LINKER_FLAGS ${LINKER_FLAGS} "-ldl -lpthread -lX11 -lXrandr -lXinerama -lXxf86vm -lXcursor")
 endif()
-target_link_libraries(svo-renderer ${LIBS} ${LINKER_FLAGS})
+target_link_libraries(svo_renderer ${LIBS} ${LINKER_FLAGS})
 
 if(MSVC)
     ### Setting target as startup project
@@ -170,5 +170,5 @@ add_directory("${ROOT_SRC_DIR}/context")
 add_directory("${ROOT_SRC_DIR}/utility")
 add_directory("${ROOT_SRC_DIR}/gui")
 
-add_executable(svo-renderer-tests ${ALL_SRCS} ${SHADER_FILES})
-target_link_libraries(svo-renderer-tests ${LIBS} ${LINKER_FLAGS})
+add_executable(svo_renderer-tests ${ALL_SRCS} ${SHADER_FILES})
+target_link_libraries(svo_renderer-tests ${LIBS} ${LINKER_FLAGS})

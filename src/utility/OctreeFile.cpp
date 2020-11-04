@@ -19,7 +19,7 @@ OctreeFile::OctreeFile(std::string name)
     }
     else
     {
-        spdlog::get("console")->critical("Error loading {0}: {1}", "../data/" + name + ".octree", strerror(errno));
+        spdlog::get("logger")->critical("Error loading {0}: {1}", "../data/" + name + ".octree", strerror(errno));
         return;
     }
     octreeHeaderFile.close();
@@ -30,18 +30,18 @@ OctreeFile::OctreeFile(std::string name)
     nodes_.reserve(header_.nNodes - 1);
     if (octreeNodesFile)
     {
-        SPDLOG_DEBUG(spdlog::get("console"), "Started loading nodes.");
+        SPDLOG_DEBUG(spdlog::get("logger"), "Started loading nodes.");
         for (int nodeNo = 0; nodeNo < header_.nNodes - 1; ++nodeNo)
         {
             OctreeFile::Node n;
             octreeNodesFile.read(reinterpret_cast<char*> (&n), sizeof(n));
             nodes_.push_back(n);
         }
-        SPDLOG_DEBUG(spdlog::get("console"), "Finished loading nodes. Size: {0}.", nodes_.size());
+        SPDLOG_DEBUG(spdlog::get("logger"), "Finished loading nodes. Size: {0}.", nodes_.size());
     }
     else
     {
-        spdlog::get("console")->critical("Error loading {0}: {1}", "../data/" + name + ".octreenodes", strerror(errno));
+        spdlog::get("logger")->critical("Error loading {0}: {1}", "../data/" + name + ".octreenodes", strerror(errno));
         return;
     }
     octreeNodesFile.close();
@@ -70,7 +70,7 @@ OctreeFile::OctreeFile(std::string name)
     }
     else
     {
-        spdlog::get("console")->critical("Error loading {0}: {1}", "../data/" + name + ".octreedata", strerror(errno));
+        spdlog::get("logger")->critical("Error loading {0}: {1}", "../data/" + name + ".octreedata", strerror(errno));
         return;
     }
     octreeDataFile.close();
@@ -96,8 +96,8 @@ std::vector<OctreeFile::Data>& OctreeFile::getData()
 void OctreeFile::printLoadedOctree()
 {
     int leafNodesNo = 0;
-    spdlog::get("console")->debug("Loaded octree nodes size: {0}", nodes_.size());
-    spdlog::get("console")->debug("Loaded octree header: {0}, {1}, {2}, {3}.", header_.version, header_.gridLength, header_.nData, header_.nNodes);
+    spdlog::get("logger")->debug("Loaded octree nodes size: {0}", nodes_.size());
+    spdlog::get("logger")->debug("Loaded octree header: {0}, {1}, {2}, {3}.", header_.version, header_.gridLength, header_.nData, header_.nNodes);
     for (int nodeNo = 0; nodeNo < header_.nNodes - 1; ++nodeNo)
     {
         if (nodes_[nodeNo].childrenBaseAddress == 0)
@@ -105,5 +105,5 @@ void OctreeFile::printLoadedOctree()
             ++leafNodesNo;
         }
     }
-    spdlog::get("console")->debug("Finished. Leaf nodes: {0}.", leafNodesNo);
+    spdlog::get("logger")->debug("Finished. Leaf nodes: {0}.", leafNodesNo);
 }

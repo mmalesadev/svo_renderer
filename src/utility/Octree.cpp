@@ -59,5 +59,5 @@ void Octree::loadNodes()
 
 void Octree::printOctreeInfo() const
 {
-    spdlog::get("console")->info("Octree node count: {0}", nNodes_);
+    spdlog::get("logger")->info("Octree node count: {0}", nNodes_);
 }

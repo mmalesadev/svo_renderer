@@ -31,6 +31,9 @@ public:
     glm::mat4 getViewMatrix();
 
 private:
+    void updateBoundingShapes(TransformComponent& transformComponent);
+
+private:
     Sphere boundingSphere_;
     Cone boundingCone_;
 

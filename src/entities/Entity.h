@@ -16,7 +16,8 @@ public:
 
     Entity(const Entity&);
 
-    std::string getName();
+    unsigned int getId() const { return id_; }
+    std::string getName() const { return name_; }
     std::unique_ptr<TransformComponent>& getTransformComponent();
     std::unique_ptr<GraphicsComponent>& getGraphicsComponent();
     std::unique_ptr<CameraComponent>& getCameraComponent();

@@ -154,7 +154,7 @@ void SVOComponent::printOctreeNodeInfo()
             std::cout << (int)node.childrenOffsets[j] << " ";
             if ((int)node.childrenBaseAddress + (int)node.childrenOffsets[j] > i)
             {
-                spdlog::get("console")->critical("Child base address is greater than or equals index! {0} {1}",
+                spdlog::get("logger")->critical("Child base address is greater than or equals index! {0} {1}",
                     node.childrenBaseAddress + (int)node.childrenOffsets[j], i);
             }
         }

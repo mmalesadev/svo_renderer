@@ -8,6 +8,8 @@ public:
     InputSystem();
     virtual void update();
 
+    std::vector< std::pair<std::string, std::string> >& getActionList() { return actionList_; }
+
 private:
     enum class InputMode { FREE_ROAM_MODE, GUI_MODE };
     enum class MovementType { MOVE_FORWARD, MOVE_BACKWARD, MOVE_LEFT, MOVE_RIGHT, MOVE_UP, MOVE_DOWN, ROLL_LEFT, ROLL_RIGHT};
@@ -28,6 +30,10 @@ private:
     InputModeActionMap keyCallbackActionMap_;
     std::unordered_map<std::string, int> glfwKeyMap_;
     std::unordered_map<int, std::string> glfwKeyMapReverse_;
+
+    std::unordered_map<std::string, std::string> actionLabels_;
+
+    std::vector< std::pair<std::string, std::string> > actionList_;
 
     InputMode inputMode_;
 };
