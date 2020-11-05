@@ -2,6 +2,7 @@
 
 GLFWwindow * ProgramVariables::window_;
 float ProgramVariables::deltaTime_;
+bool ProgramVariables::guiVisible_;
 
 void ProgramVariables::init()
 {
@@ -28,6 +29,8 @@ void ProgramVariables::init()
     glEnable(GL_CULL_FACE);
     glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     glfwSwapInterval(0);    // Disable vsync
+
+    guiVisible_ = true;
 }
 
 GLFWwindow * ProgramVariables::getWindow()

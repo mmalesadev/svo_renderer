@@ -1,5 +1,6 @@
 #include "GuiRenderingSystem.h"
 #include "ProgramVariables.h"
+#include "SVOComponent.h"
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -19,6 +20,19 @@ GuiRenderingSystem::GuiRenderingSystem(std::vector< std::pair<std::string, std::
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     windowSize_ = ProgramVariables::getWindowSize();
+
+    auto activeScene = SceneManager::getInstance()->getActiveScene();
+    World& world = activeScene->getWorld();
+    auto& entities = world.getEntities();
+    for (auto& entity : entities)
+    {
+        auto& graphicsComponent = entity->getGraphicsComponent();
+        if (graphicsComponent && graphicsComponent->isSvoComponent())
+        {
+            SVOComponent& svoComponent = (SVOComponent&)*graphicsComponent;
+            nTotalVoxels_ += svoComponent.getDataSize();
+        }
+    }
 }
 
 GuiRenderingSystem::~GuiRenderingSystem()
@@ -35,6 +49,8 @@ void GuiRenderingSystem::update()
 
 void GuiRenderingSystem::render()
 {
+    if (!ProgramVariables::isGuiVisible()) return;
+
     auto activeScene = SceneManager::getInstance()->getActiveScene();
     World& world = activeScene->getWorld();
     auto& entities = world.getEntities();
@@ -49,7 +65,15 @@ void GuiRenderingSystem::render()
     ImGui::Begin("Menu", 0, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
     if (ImGui::CollapsingHeader("Info", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::Text("%.0f FPS", ImGui::GetIO().Framerate);
+        ImGui::Text("FPS: %.0f", ImGui::GetIO().Framerate);
+        int nVisibleEntities = 0;
+        for (auto& entity : entities)
+        {
+            auto& graphicsComponent = entity->getGraphicsComponent();
+            if (graphicsComponent && graphicsComponent->isVisible()) nVisibleEntities += 1;
+        }
+        ImGui::Text("Visible entities: %d", nVisibleEntities);
+        ImGui::Text("Total voxels: %d", nTotalVoxels_);
     }
     if (ImGui::CollapsingHeader("World", ImGuiTreeNodeFlags_DefaultOpen))
     {

@@ -16,6 +16,7 @@ private:
 
     void moveActiveCamera(MovementType movementType);
     void toggleFreeRoam();
+    void toggleGui();
 
     void prepareGlfwKeyMaps();
     void loadActionKeyMapFromSqliteDb();
