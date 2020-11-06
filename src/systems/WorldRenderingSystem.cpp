@@ -10,7 +10,7 @@
 
 WorldRenderingSystem::WorldRenderingSystem()
 {
-    mainShaderProgram_.loadShaderProgram("main");
+    mainShaderProgram_.loadShaderProgram("test_gauss_splat");
     boundingBoxShaderProgram_.loadShaderProgram("boundingbox");
     boundingSphereShaderProgram_.loadShaderProgram("boundingsphere");
 

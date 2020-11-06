@@ -29,7 +29,7 @@ add_directory("${ROOT_SRC_DIR}/utility")
 add_directory("${ROOT_SRC_DIR}/gui")
 
 # Shaders
-file(GLOB SHADER_FILES ${CMAKE_SOURCE_DIR}/res/shaders/*.vert ${CMAKE_SOURCE_DIR}/res/shaders/*.frag ${CMAKE_SOURCE_DIR}/res/shaders/*.geom)
+file(GLOB SHADER_FILES ${CMAKE_SOURCE_DIR}/data/shaders/*.vert ${CMAKE_SOURCE_DIR}/data/shaders/*.frag ${CMAKE_SOURCE_DIR}/data/shaders/*.geom)
 source_group("shaders" FILES ${SHADER_FILES})
 
 ### Libraries and headers
