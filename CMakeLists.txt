@@ -20,6 +20,7 @@ set(ROOT_SRC_DIR "src")
 
 add_directory(${ROOT_SRC_DIR})
 add_directory("${ROOT_SRC_DIR}/systems")
+add_directory("${ROOT_SRC_DIR}/systems/rendering")
 add_directory("${ROOT_SRC_DIR}/core")
 add_directory("${ROOT_SRC_DIR}/entities")
 add_directory("${ROOT_SRC_DIR}/components")
@@ -115,6 +116,24 @@ if(LIBMORTON_HEADERS_DIR)
     include_directories( ${LIBMORTON_HEADERS_DIR} )
 else()
     message(SEND_ERROR "Libmorton was not found.")
+endif()
+
+# Xtl
+set(DEFAULT_XTL_DIR "xtl")
+find_path(XTL_HEADERS_DIR xtl/xsequence.hpp ${LIB_DIR}/${DEFAULT_XTL_DIR}/include)
+if(XTL_HEADERS_DIR)
+    include_directories( ${XTL_HEADERS_DIR} )
+else()
+    message(SEND_ERROR "Xtl was not found.")
+endif()
+
+# xtensor
+set(DEFAULT_XTENSOR_DIR "xtensor")
+find_path(XTENSOR_HEADERS_DIR xtensor.hpp ${LIB_DIR}/${DEFAULT_XTENSOR_DIR}/include)
+if(XTENSOR_HEADERS_DIR)
+    include_directories( ${XTENSOR_HEADERS_DIR} )
+else()
+    message(SEND_ERROR "Xtensor was not found.")
 endif()
 
 # FreeImage

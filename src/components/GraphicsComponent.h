@@ -17,6 +17,8 @@ public:
     GraphicsComponent(std::string name);
 
     std::string getName() const { return name_; }
+    glm::vec4 getColor() const { return color_; }
+    void setColor(glm::vec4 color) { color_ = color; }
     std::array<glm::vec4, 8>& getBoundingBoxVertices() { return boundingBoxVertices_; }
     std::vector<glm::vec3>& getBoundingSphereVertices() { return boundingSphereVertices_; }
     std::vector<GLushort>& getBoundingSphereElements() { return boundingSphereElements_; }
@@ -61,4 +63,5 @@ protected:
     bool visible_;
 
     std::string name_;
+    glm::vec4 color_;
 };

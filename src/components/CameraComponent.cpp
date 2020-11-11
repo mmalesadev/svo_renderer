@@ -2,7 +2,12 @@
 #include "ProgramVariables.h"
 #include <iostream>
 
-CameraComponent::CameraComponent(float speed) : speed_(speed)
+CameraComponent::CameraComponent() : speed_(0), initialSpeed_(0)
+{
+
+}
+
+CameraComponent::CameraComponent(float speed) : speed_(speed), initialSpeed_(speed)
 {
 
 }
@@ -65,9 +70,19 @@ glm::vec3 CameraComponent::getRight() const
     return right_;
 }
 
+void CameraComponent::setSpeed(float speed)
+{
+    speed_ = speed;
+}
+
 float CameraComponent::getSpeed() const
 {
     return speed_;
+}
+
+float CameraComponent::getInitialSpeed() const
+{
+    return initialSpeed_;
 }
 
 glm::mat4 CameraComponent::getProjectionMatrix()

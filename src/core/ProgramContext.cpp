@@ -1,6 +1,6 @@
 #include "ProgramContext.h"
-#include "WorldRenderingSystem.h"
-#include "GuiRenderingSystem.h"
+#include "RenderingSystem.h"
+#include "GuiSystem.h"
 #include "InputSystem.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"

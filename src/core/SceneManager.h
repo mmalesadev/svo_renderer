@@ -6,6 +6,7 @@
 #include "EntityManager.h"
 #include "ComponentManager.h"
 #include "SystemManager.h"
+#include "SplatRenderer.h"
 #include <map>
 #include <memory>
 #include <optional>
@@ -23,6 +24,7 @@ public:
 
     const std::string& getActiveScene() const { return activeScene_; }
     std::optional<EntityId> getActiveCamera() const { return activeCamera_; }
+    RenderingSystem* getRenderingSystem() { return systemManager_->getRenderingSystem(); }
 
     template <typename T>
     void addComponent(EntityId entityId, ComponentId componentId, T& component)

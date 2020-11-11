@@ -11,7 +11,7 @@
 class CameraComponent
 {
 public:
-    CameraComponent() : speed_(0) {}
+    CameraComponent();
     CameraComponent(float speed);
 
     void activate(TransformComponent& transformComponent);
@@ -26,7 +26,9 @@ public:
     glm::vec3 getDirection() const;
     glm::vec3 getUp() const;
     glm::vec3 getRight() const;
+    void setSpeed(float speed);
     float getSpeed() const;
+    float getInitialSpeed() const;
     glm::mat4 getProjectionMatrix();
     void setViewMatrix(glm::vec3 eye, glm::vec3 view, glm::vec3 up);
     glm::mat4 getViewMatrix();
@@ -42,6 +44,7 @@ private:
     glm::vec3 up_;
     glm::vec3 right_;
     float speed_;
+    float initialSpeed_;
     glm::mat4 projectionMatrix_;
     glm::mat4 viewMatrix_;
 

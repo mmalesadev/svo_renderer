@@ -6,7 +6,7 @@
 
 GraphicsComponent::GraphicsComponent() :
     VAO_(0), VBO_(0), bbVAO_(0), bbVBO_(0), bbEBO_(0), bsVAO_(0), bsVBO_(0), bsEBO_(0),
-    boundingSphereRadius_(0.0f), visible_(true)
+    boundingSphereRadius_(0.0f), visible_(true), color_(1, 1, 1, 1)
 {
 }
 
