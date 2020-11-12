@@ -1,7 +1,7 @@
 #include "SceneManager.h"
 #include <sqlite3.h>
-#include "SVOComponent.h"
-#include "MeshComponent.h"
+
+#include "ComponentArray.hpp"
 
 SceneManager* SceneManager::instance_ = nullptr;
 
@@ -84,12 +84,7 @@ void SceneManager::loadSceneFromSqliteDb(std::string sceneName)
         if (graphicsComponentType == "svo")
         {
             SPDLOG_DEBUG(spdlog::get("logger"), "Constructing SVOComponent. Name: {0}", data[1]);
-            newGraphicsComponent = std::make_unique<SVOComponent>(data[1]);
-        }
-        else if (graphicsComponentType == "mesh")
-        {
-            SPDLOG_DEBUG(spdlog::get("logger"), "Constructing Mesh. Name: {0}", data[1]);
-            newGraphicsComponent = std::make_unique<MeshComponent>(data[1]);
+            newGraphicsComponent = std::make_unique<GraphicsComponent>(data[1]);
         }
         std::string cameraComponentType(data[10]);
         if (cameraComponentType == "perspective")

@@ -51,23 +51,13 @@ void WorldRenderingSystem::render()
             if (!graphicsComponent->isVisible()) continue;
             ++nRenderedObjects;
 
-            if (graphicsComponent->isSvoComponent())
-            {
-                SVOComponent& svoComponent = (SVOComponent&)*graphicsComponent;
+            mainShaderProgram_.setUniform("MV", transformComponent->getViewModelMatrix());
+            mainShaderProgram_.setUniform("P", projectionMatrix);
+            mainShaderProgram_.setUniform("scale", transformComponent->getScale());
+            mainShaderProgram_.setUniform("gridLength", (float)graphicsComponent->getGridLength());
 
-                mainShaderProgram_.setUniform("MV", transformComponent->getViewModelMatrix());
-                mainShaderProgram_.setUniform("P", projectionMatrix);
-                mainShaderProgram_.setUniform("scale", transformComponent->getScale());
-                mainShaderProgram_.setUniform("gridLength", (float)svoComponent.getGridLength());
-
-                glBindVertexArray(svoComponent.getVAO());
-                glDrawArrays(GL_POINTS, 0, svoComponent.getDataSize()-1);
-            }
-            else if (graphicsComponent->isMeshComponent())
-            {
-                MeshComponent& meshComponent = (MeshComponent&)*graphicsComponent;
-            }
-
+            glBindVertexArray(graphicsComponent->getVAO());
+            glDrawArrays(GL_POINTS, 0, graphicsComponent->getDataSize()-1);
         }
     }
 }

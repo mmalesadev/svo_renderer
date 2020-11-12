@@ -1,6 +1,6 @@
 #include "GuiRenderingSystem.h"
 #include "ProgramVariables.h"
-#include "SVOComponent.h"
+#include "GraphicsComponent.h"
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -27,10 +27,9 @@ GuiRenderingSystem::GuiRenderingSystem(std::vector< std::pair<std::string, std::
     for (auto& entity : entities)
     {
         auto& graphicsComponent = entity->getGraphicsComponent();
-        if (graphicsComponent && graphicsComponent->isSvoComponent())
+        if (graphicsComponent)
         {
-            SVOComponent& svoComponent = (SVOComponent&)*graphicsComponent;
-            nTotalVoxels_ += svoComponent.getDataSize();
+            nTotalVoxels_ += graphicsComponent->getDataSize();
         }
     }
 }

@@ -7,10 +7,13 @@
 #include <string>
 #include <GL/glew.h>
 #include "Shader.h"
+#include "OctreeFile.h"
+#include "Octree.h"
 
 class GraphicsComponent
 {
 public:
+    GraphicsComponent(std::string name);
     virtual ~GraphicsComponent() = default;
 
     std::array<glm::vec4, 8>& getBoundingBoxVertices() { return boundingBoxVertices_; }
@@ -18,18 +21,23 @@ public:
     std::vector<GLushort>& getBoundingSphereElements() { return boundingSphereElements_; }
     float getBoundingSphereRadius() { return boundingSphereRadius_; }
 
+    unsigned int getGridLength() const { return octreeFile_->getHeader().gridLength; }
+    size_t getDataSize() const { return octreeFile_->getData().size(); }
     void setVisible(bool visible) { visible_ = visible; }
     bool isVisible() const { return visible_; }
-    bool isSvoComponent() const { return graphicsComponentType_ == GraphicsComponentType::GRAPHICS_COMPONENT_SVO; }
-    bool isMeshComponent() const { return graphicsComponentType_ == GraphicsComponentType::GRAPHICS_COMPONENT_MESH; }
 
     GLuint getVAO() const { return VAO_; }
     GLuint getBbVAO() const { return bbVAO_; }
     GLuint getBsVAO() const { return bsVAO_; }
 
+    void printOctreeNodeInfo();
+
 protected:
-    enum class GraphicsComponentType { GRAPHICS_COMPONENT_SVO, GRAPHICS_COMPONENT_MESH };
+    enum class GraphicsComponentType { GRAPHICS_COMPONENT_SVO };
     GraphicsComponentType graphicsComponentType_;
+
+    std::unique_ptr<OctreeFile> octreeFile_;
+    std::unique_ptr<Octree> octree_;
 
     GLuint VAO_;
     GLuint VBO_;
