@@ -3,7 +3,8 @@
 
 int main(int argc, char * argv[])
 {
-    auto logger = spdlog::basic_logger_mt("logger", "svo_renderer_log.txt");
+    //auto logger = spdlog::basic_logger_mt("logger", "svo_renderer_log.txt");
+    auto logger = spdlog::stdout_color_mt("logger");
     logger->set_pattern("[%H:%M:%S][%l] %v");
     logger->set_level(spdlog::level::debug);
         

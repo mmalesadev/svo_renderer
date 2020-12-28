@@ -94,64 +94,63 @@ void InputSystem::update()
     glfwGetCursorPos(ProgramVariables::getWindow(), &xPos, &yPos);
     glfwGetWindowSize(ProgramVariables::getWindow(), &width, &height);
     glfwSetCursorPos(ProgramVariables::getWindow(), width / 2, height / 2);
-    auto activeCamera = SceneManager::getInstance()->getActiveScene()->getActiveCamera();
+    auto activeCamera = SceneManager::getInstance()->getActiveCamera();
     if (activeCamera)
     {
-        auto& transformComponent = activeCamera->getTransformComponent();
-        auto& cameraComponent = activeCamera->getCameraComponent();
-        glm::quat deltaPitch = glm::angleAxis(0.002f * float(height / 2 - yPos), cameraComponent->getRight());
-        glm::quat deltaYaw = glm::angleAxis(0.002f * float(width / 2 - xPos), cameraComponent->getUp());
-        transformComponent->setQuaternion(glm::normalize(deltaPitch * deltaYaw * transformComponent->getQuaternion()));
-        cameraComponent->update(*transformComponent);
+        auto& transformComponent = SceneManager::getInstance()->getComponent<TransformComponent>(*activeCamera, TRANSFORM_COMPONENT_ID);
+        auto& cameraComponent = SceneManager::getInstance()->getComponent<CameraComponent>(*activeCamera, CAMERA_COMPONENT_ID);
+        glm::quat deltaPitch = glm::angleAxis(0.002f * float(height / 2 - yPos), cameraComponent.getRight());
+        glm::quat deltaYaw = glm::angleAxis(0.002f * float(width / 2 - xPos), cameraComponent.getUp());
+        transformComponent.setQuaternion(glm::normalize(deltaPitch * deltaYaw * transformComponent.getQuaternion()));
+        cameraComponent.update(transformComponent);
     }
 }
 
 void InputSystem::moveActiveCamera(MovementType movementType)
 {
-    auto activeScene = SceneManager::getInstance()->getActiveScene();
-    auto activeCamera = activeScene->getActiveCamera();
+    auto activeCamera = SceneManager::getInstance()->getActiveCamera();
     if (activeCamera)
     {
-        auto& transformComponent = activeCamera->getTransformComponent();
-        auto& cameraComponent = activeCamera->getCameraComponent();
+        auto& transformComponent = SceneManager::getInstance()->getComponent<TransformComponent>(*activeCamera, TRANSFORM_COMPONENT_ID);
+        auto& cameraComponent = SceneManager::getInstance()->getComponent<CameraComponent>(*activeCamera, CAMERA_COMPONENT_ID);
 
         switch (movementType)
         {
         case MovementType::MOVE_FORWARD:
-            transformComponent->setPosition(transformComponent->getPosition() + cameraComponent->getDirection() * ProgramVariables::getDeltaTime() * cameraComponent->getSpeed());
+            transformComponent.setPosition(transformComponent.getPosition() + cameraComponent.getDirection() * ProgramVariables::getDeltaTime() * cameraComponent.getSpeed());
             break;
         case MovementType::MOVE_BACKWARD:
-            transformComponent->setPosition(transformComponent->getPosition() - cameraComponent->getDirection() * ProgramVariables::getDeltaTime() * cameraComponent->getSpeed());
+            transformComponent.setPosition(transformComponent.getPosition() - cameraComponent.getDirection() * ProgramVariables::getDeltaTime() * cameraComponent.getSpeed());
             break;
         case MovementType::MOVE_LEFT:
-            transformComponent->setPosition(transformComponent->getPosition() - cameraComponent->getRight() * ProgramVariables::getDeltaTime() * cameraComponent->getSpeed());
+            transformComponent.setPosition(transformComponent.getPosition() - cameraComponent.getRight() * ProgramVariables::getDeltaTime() * cameraComponent.getSpeed());
             break;
         case MovementType::MOVE_RIGHT:
-            transformComponent->setPosition(transformComponent->getPosition() + cameraComponent->getRight() * ProgramVariables::getDeltaTime() * cameraComponent->getSpeed());
+            transformComponent.setPosition(transformComponent.getPosition() + cameraComponent.getRight() * ProgramVariables::getDeltaTime() * cameraComponent.getSpeed());
             break;
         case MovementType::ROLL_LEFT:
         {
-            glm::quat deltaRoll = glm::angleAxis(-1.0f * ProgramVariables::getDeltaTime(), cameraComponent->getDirection());
-            transformComponent->setQuaternion(glm::normalize(deltaRoll * transformComponent->getQuaternion()));
+            glm::quat deltaRoll = glm::angleAxis(-1.0f * ProgramVariables::getDeltaTime(), cameraComponent.getDirection());
+            transformComponent.setQuaternion(glm::normalize(deltaRoll * transformComponent.getQuaternion()));
             break;
         }
         case MovementType::ROLL_RIGHT:
         {
-            glm::quat deltaRoll = glm::angleAxis(1.0f * ProgramVariables::getDeltaTime(), cameraComponent->getDirection());
-            transformComponent->setQuaternion(glm::normalize(deltaRoll * transformComponent->getQuaternion()));
+            glm::quat deltaRoll = glm::angleAxis(1.0f * ProgramVariables::getDeltaTime(), cameraComponent.getDirection());
+            transformComponent.setQuaternion(glm::normalize(deltaRoll * transformComponent.getQuaternion()));
             break;
         }
         case MovementType::MOVE_UP:
-            transformComponent->setPosition(transformComponent->getPosition() + ProgramVariables::getDeltaTime() * cameraComponent->getSpeed() * cameraComponent->getUp());
+            transformComponent.setPosition(transformComponent.getPosition() + ProgramVariables::getDeltaTime() * cameraComponent.getSpeed() * cameraComponent.getUp());
             break;
         case MovementType::MOVE_DOWN:
-            transformComponent->setPosition(transformComponent->getPosition() - ProgramVariables::getDeltaTime() * cameraComponent->getSpeed() * cameraComponent->getUp());
+            transformComponent.setPosition(transformComponent.getPosition() - ProgramVariables::getDeltaTime() * cameraComponent.getSpeed() * cameraComponent.getUp());
             break;
         default:
             break;
         }
 
-        cameraComponent->update(*transformComponent);
+        cameraComponent.update(transformComponent);
     }
 }
 

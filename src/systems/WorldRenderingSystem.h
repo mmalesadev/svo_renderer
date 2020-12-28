@@ -3,6 +3,7 @@
 #include "Shader.h"
 #include "ProgramVariables.h"
 #include "Text.h"
+#include "GraphicsComponent.h"
 
 class WorldRenderingSystem : public System
 {

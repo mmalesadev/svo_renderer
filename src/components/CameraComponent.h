@@ -11,6 +11,7 @@
 class CameraComponent
 {
 public:
+    CameraComponent() : speed_(0) {}
     CameraComponent(float speed);
 
     void activate(TransformComponent& transformComponent);

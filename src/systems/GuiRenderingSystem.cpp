@@ -1,10 +1,12 @@
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 #include "GuiRenderingSystem.h"
 #include "ProgramVariables.h"
 #include "GraphicsComponent.h"
 
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#include "SceneManager.h"
 
 GuiRenderingSystem::GuiRenderingSystem(std::vector< std::pair<std::string, std::string> >& actionList)
     : actionList_(actionList)
@@ -21,16 +23,10 @@ GuiRenderingSystem::GuiRenderingSystem(std::vector< std::pair<std::string, std::
 
     windowSize_ = ProgramVariables::getWindowSize();
 
-    auto activeScene = SceneManager::getInstance()->getActiveScene();
-    World& world = activeScene->getWorld();
-    auto& entities = world.getEntities();
-    for (auto& entity : entities)
+    for (auto& entity : entities_)
     {
-        auto& graphicsComponent = entity->getGraphicsComponent();
-        if (graphicsComponent)
-        {
-            nTotalVoxels_ += graphicsComponent->getDataSize();
-        }
+        auto& graphicsComponent = SceneManager::getInstance()->getComponent<GraphicsComponent>(entity, GRAPHICS_COMPONENT_ID);
+        nTotalVoxels_ += graphicsComponent.getDataSize();
     }
 }
 
@@ -50,10 +46,6 @@ void GuiRenderingSystem::render()
 {
     if (!ProgramVariables::isGuiVisible()) return;
 
-    auto activeScene = SceneManager::getInstance()->getActiveScene();
-    World& world = activeScene->getWorld();
-    auto& entities = world.getEntities();
-
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -66,10 +58,10 @@ void GuiRenderingSystem::render()
     {
         ImGui::Text("FPS: %.0f", ImGui::GetIO().Framerate);
         int nVisibleEntities = 0;
-        for (auto& entity : entities)
+        for (auto& entity : entities_)
         {
-            auto& graphicsComponent = entity->getGraphicsComponent();
-            if (graphicsComponent && graphicsComponent->isVisible()) nVisibleEntities += 1;
+            auto& graphicsComponent = SceneManager::getInstance()->getComponent<GraphicsComponent>(entity, GRAPHICS_COMPONENT_ID);
+            if (graphicsComponent.isVisible()) nVisibleEntities += 1;
         }
         ImGui::Text("Visible entities: %d", nVisibleEntities);
         ImGui::Text("Total voxels: %d", nTotalVoxels_);
@@ -84,11 +76,12 @@ void GuiRenderingSystem::render()
         ImGui::Text("ID"); ImGui::NextColumn();
         ImGui::Text("Name"); ImGui::NextColumn();
         ImGui::Separator();
-        for (auto& entity : entities)
+        for (auto& entity : entities_)
         {
-            ImGui::Text("%d", entity->getId());
+            ImGui::Text("%d", entity);
             ImGui::NextColumn();
-            ImGui::Text("%s", entity->getName().c_str());
+            auto& graphicsComponent = SceneManager::getInstance()->getComponent<GraphicsComponent>(entity, GRAPHICS_COMPONENT_ID);
+            ImGui::Text("%s", graphicsComponent.getName().c_str());
             ImGui::NextColumn();
         }
         ImGui::Columns(1);

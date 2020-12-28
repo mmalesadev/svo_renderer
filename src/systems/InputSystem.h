@@ -1,6 +1,10 @@
 #pragma once
 
 #include "System.h"
+#include "SceneManager.h"
+#include <unordered_map>
+#include <vector>
+#include <spdlog/spdlog.h>
 
 class InputSystem : public System
 {

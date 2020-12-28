@@ -4,8 +4,15 @@
 #include <stack>
 #include "SceneManager.h"
 
-GraphicsComponent::GraphicsComponent(std::string name)
+GraphicsComponent::GraphicsComponent() :
+    VAO_(0), VBO_(0), bbVAO_(0), bbVBO_(0), bbEBO_(0), bsVAO_(0), bsVBO_(0), bsEBO_(0),
+    boundingSphereRadius_(0.0f), visible_(true)
 {
+}
+
+GraphicsComponent::GraphicsComponent(std::string name) : GraphicsComponent()
+{
+    name_ = name;
     graphicsComponentType_ = GraphicsComponentType::GRAPHICS_COMPONENT_SVO;
 
     // Loading nodes to octreeFile_ structure

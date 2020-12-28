@@ -4,6 +4,7 @@
 class TransformComponent
 {
 public:
+    TransformComponent() : TransformComponent(0, glm::vec3(0), glm::vec3(0)) {}
     TransformComponent(float scale, glm::vec3 position, glm::vec3 eulerAngles);
 
     void recalculateMatrices(glm::mat4 viewMatrix);

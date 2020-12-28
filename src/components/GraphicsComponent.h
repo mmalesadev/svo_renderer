@@ -5,17 +5,18 @@
 #include <any>
 #include <vector>
 #include <string>
-#include <GL/glew.h>
 #include "Shader.h"
 #include "OctreeFile.h"
 #include "Octree.h"
+#include <spdlog/spdlog.h>
 
 class GraphicsComponent
 {
 public:
+    GraphicsComponent();
     GraphicsComponent(std::string name);
-    virtual ~GraphicsComponent() = default;
 
+    std::string getName() const { return name_; }
     std::array<glm::vec4, 8>& getBoundingBoxVertices() { return boundingBoxVertices_; }
     std::vector<glm::vec3>& getBoundingSphereVertices() { return boundingSphereVertices_; }
     std::vector<GLushort>& getBoundingSphereElements() { return boundingSphereElements_; }
@@ -57,5 +58,7 @@ protected:
 
     std::map<std::string, std::any> uniformMap;
 
-    bool visible_ = true;
+    bool visible_;
+
+    std::string name_;
 };

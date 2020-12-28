@@ -1,6 +1,8 @@
 #pragma once
 #include "System.h"
-#include "ProgramVariables.h"
+#include "SceneManager.h"
+#include <vector>
+#include <string>
 
 class GuiRenderingSystem : public System
 {
