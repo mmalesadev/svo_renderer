@@ -9,6 +9,7 @@
 #include "SceneManager.h"
 
 #include <memory>
+#include <iostream>
 
 GuiSystem::GuiSystem(std::vector< std::pair<std::string, std::string> >& actionList)
     : actionList_(actionList)
@@ -24,6 +25,13 @@ GuiSystem::GuiSystem(std::vector< std::pair<std::string, std::string> >& actionL
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     windowSize_ = ProgramVariables::getWindowSize();
+
+    for (auto& it : SceneManager::getInstance()->getEntityTypes()) {
+        if (!it.second.graphicsComponent.empty()) {
+            entityTypesStr_ += (it.first + '\0');
+            entityTypes_.push_back(it.first);
+        }
+    }
 }
 
 GuiSystem::~GuiSystem()
@@ -48,8 +56,8 @@ void GuiSystem::render()
 
     auto renderingSystem = SceneManager::getInstance()->getRenderingSystem();
 
-    if (show_demo_window)
-        ImGui::ShowDemoWindow(&show_demo_window);
+    if (show_demo_window_)
+        ImGui::ShowDemoWindow(&show_demo_window_);
 
     ImGui::Begin("Menu", 0, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
     if (ImGui::CollapsingHeader("Info", ImGuiTreeNodeFlags_DefaultOpen))
@@ -62,31 +70,71 @@ void GuiSystem::render()
             if (graphicsComponent.isVisible()) nVisibleEntities += 1;
         }
         ImGui::Text("Visible entities: %d", nVisibleEntities);
-        ImGui::Text("Total voxels: %d", renderingSystem->getTotalVoxelsNumber());
+        ImGui::Text("Total voxels: %lld", renderingSystem->getTotalVoxelsNumber());
+        if (ImGui::Button("Save"))
+        {
+            SceneManager::getInstance()->saveActiveScene();
+        }
+    }
+    if (ImGui::CollapsingHeader("Actions", ImGuiTreeNodeFlags_DefaultOpen)) {
+        static int chosen_entity_type_idx = -1;
+        ImGui::Combo("##added_entity", &chosen_entity_type_idx, entityTypesStr_.c_str());
+        if (ImGui::Button("Add entity")) {
+            if (chosen_entity_type_idx >= 0)
+                SceneManager::getInstance()->addNewEntity(entityTypes_[chosen_entity_type_idx]);
+        }
     }
     if (ImGui::CollapsingHeader("World", ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::Columns(1);
         ImGui::Separator();
         ImGui::Text("Entities");
-        ImGui::Columns(3);
+        ImGui::Columns(8);
         ImGui::Separator();
         ImGui::Text("ID"); ImGui::NextColumn();
         ImGui::Text("Name"); ImGui::NextColumn();
         ImGui::Text("Color"); ImGui::NextColumn();
+        ImGui::Text("Scale"); ImGui::NextColumn();
+        ImGui::Text("x"); ImGui::NextColumn();
+        ImGui::Text("y"); ImGui::NextColumn();
+        ImGui::Text("z"); ImGui::NextColumn();
+        ImGui::NextColumn();
         ImGui::Separator();
         for (auto& entity : entities_)
         {
             ImGui::Text("%d", entity);
             ImGui::NextColumn();
             auto& graphicsComponent = SceneManager::getInstance()->getComponent<GraphicsComponent>(entity, GRAPHICS_COMPONENT_ID);
+            auto& transformComponent = SceneManager::getInstance()->getComponent<TransformComponent>(entity, TRANSFORM_COMPONENT_ID);
             ImGui::Text("%s", graphicsComponent.getName().c_str());
             ImGui::NextColumn();
             renderEntityColorPicker(entity);
             ImGui::NextColumn();
+            static ImGuiSliderFlags flags = ImGuiSliderFlags_None;
+            float scale = transformComponent.getScale();
+            if (ImGui::DragFloat(std::string("##scale" + std::to_string(entity)).c_str(), &scale, 1.0f, 1, 100, "%.0f", flags)) {
+                transformComponent.setScale(scale);
+            }
+            ImGui::NextColumn();        
+            glm::vec3 entityPosition = transformComponent.getPosition();
+            if (ImGui::DragFloat(std::string("##x" + std::to_string(entity)).c_str(), &entityPosition[0], 0.05f, -FLT_MAX, +FLT_MAX, "%.2f", flags)) {
+                transformComponent.setPosition(entityPosition);
+            }
+            ImGui::NextColumn();
+            if (ImGui::DragFloat(std::string("##y" + std::to_string(entity)).c_str(), &entityPosition[1], 0.05f, -FLT_MAX, +FLT_MAX, "%.2f", flags)) {
+                transformComponent.setPosition(entityPosition);
+            }
+            ImGui::NextColumn();
+            if (ImGui::DragFloat(std::string("##z" + std::to_string(entity)).c_str(), &entityPosition[2], 0.05f, -FLT_MAX, +FLT_MAX, "%.2f", flags)) {
+                transformComponent.setPosition(entityPosition);
+            }
+            ImGui::NextColumn();
+            if (ImGui::Button(std::string("x##remove" + std::to_string(entity)).c_str())) {
+                SceneManager::getInstance()->removeEntity(entity);
+            }
+            ImGui::NextColumn();
         }
         ImGui::Columns(1);
-        ImGui::Separator();
     }
     if (ImGui::CollapsingHeader("Options", ImGuiTreeNodeFlags_DefaultOpen))
     {
@@ -178,7 +226,7 @@ void GuiSystem::renderEntityColorPicker(EntityId entity)
     auto& graphicsComponent = SceneManager::getInstance()->getComponent<GraphicsComponent>(entity, GRAPHICS_COMPONENT_ID);
 
     glm::vec4 c = graphicsComponent.getColor();
-    static ImVec4 color(c.r, c.g, c.b, c.a);
+    ImVec4 color(c.r, c.g, c.b, c.a);
 
     static bool alpha_preview = true;
     static bool alpha_half_preview = false;
@@ -187,7 +235,7 @@ void GuiSystem::renderEntityColorPicker(EntityId entity)
     static bool hdr = false;
     ImGuiColorEditFlags misc_flags = (hdr ? ImGuiColorEditFlags_HDR : 0) | (drag_and_drop ? 0 : ImGuiColorEditFlags_NoDragDrop) | (alpha_half_preview ? ImGuiColorEditFlags_AlphaPreviewHalf : (alpha_preview ? ImGuiColorEditFlags_AlphaPreview : 0)) | (options_menu ? 0 : ImGuiColorEditFlags_NoOptions);
 
-    if (ImGui::ColorEdit4(std::string("##" + graphicsComponent.getName()).c_str(), (float*)&color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | misc_flags))
+    if (ImGui::ColorEdit4(std::string("##entity_" + std::to_string(entity)).c_str(), (float*)&color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | misc_flags))
     {
         graphicsComponent.setColor(glm::vec4(color.x, color.y, color.z, color.w));
     }

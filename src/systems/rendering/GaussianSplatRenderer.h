@@ -14,7 +14,7 @@ public:
 
 private:
     void setUniforms(TransformComponent& transformComponent, GraphicsComponent& graphicsComponent) override;
-    void draw(TransformComponent& transformComponent, GraphicsComponent& graphicsComponent) override;
+    void draw(GraphicsComponent& graphicsComponent) override;
 
     void calculateGaussianMatrix();
 

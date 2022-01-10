@@ -14,7 +14,7 @@ public:
 
 private:
     virtual void setUniforms(TransformComponent& transformComponent, GraphicsComponent& graphicsComponent) = 0;
-    virtual void draw(TransformComponent& transformComponent, GraphicsComponent& graphicsComponent) = 0;
+    virtual void draw(GraphicsComponent& graphicsComponent) = 0;
 
 protected:
     ShaderProgram shaderProgram_;

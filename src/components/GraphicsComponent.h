@@ -14,7 +14,7 @@ class GraphicsComponent
 {
 public:
     GraphicsComponent();
-    GraphicsComponent(std::string name);
+    GraphicsComponent(std::string name, glm::vec4 color);
 
     std::string getName() const { return name_; }
     glm::vec4 getColor() const { return color_; }
@@ -39,8 +39,8 @@ protected:
     enum class GraphicsComponentType { GRAPHICS_COMPONENT_SVO };
     GraphicsComponentType graphicsComponentType_;
 
-    std::unique_ptr<OctreeFile> octreeFile_;
-    std::unique_ptr<Octree> octree_;
+    std::shared_ptr<OctreeFile> octreeFile_;
+    std::shared_ptr<Octree> octree_;
 
     GLuint VAO_;
     GLuint VBO_;

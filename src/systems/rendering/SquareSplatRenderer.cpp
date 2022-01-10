@@ -11,7 +11,7 @@ void SquareSplatRenderer::setUniforms(TransformComponent& transformComponent, Gr
     shaderProgram_.setUniform("gridLength", (float)graphicsComponent.getGridLength());
 }
 
-void SquareSplatRenderer::draw(TransformComponent& transformComponent, GraphicsComponent& graphicsComponent)
+void SquareSplatRenderer::draw(GraphicsComponent& graphicsComponent)
 {
     glBindVertexArray(graphicsComponent.getVAO());
     glDrawArrays(GL_POINTS, 0, graphicsComponent.getDataSize() - 1);

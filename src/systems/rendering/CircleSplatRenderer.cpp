@@ -30,7 +30,7 @@ void CircleSplatRenderer::setUniforms(TransformComponent& transformComponent, Gr
     shaderProgram_.setUniform("midEdgeAlphaValue", midEdgeAlphaValue_);
 }
 
-void CircleSplatRenderer::draw(TransformComponent& transformComponent, GraphicsComponent& graphicsComponent)
+void CircleSplatRenderer::draw(GraphicsComponent& graphicsComponent)
 {
     glBindVertexArray(graphicsComponent.getVAO());
     glActiveTexture(GL_TEXTURE0);

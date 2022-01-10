@@ -11,6 +11,7 @@ public:
     glm::mat4 getViewModelMatrix() const;
 
     float getScale() const;
+    void setScale(float scale);
 
     glm::vec3 getPosition() const;
     void setPosition(glm::vec3 position);
@@ -24,5 +25,5 @@ private:
     glm::quat quaternion_;
 
     glm::mat4 modelMatrix_;
-    glm::mat4 ViewModelMatrix_;
+    glm::mat4 viewModelMatrix_;
 };

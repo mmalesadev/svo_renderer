@@ -11,14 +11,14 @@
 
 RenderingSystem::RenderingSystem()
 {
-    boundingBoxShaderProgram_.loadShaderProgram("boundingbox");
-    boundingSphereShaderProgram_.loadShaderProgram("boundingsphere");
+    //boundingBoxShaderProgram_.loadShaderProgram("boundingbox");
+    //boundingSphereShaderProgram_.loadShaderProgram("boundingsphere");
 
     windowSize_ = ProgramVariables::getWindowSize();
 
-    splatRenderers_.push_back(std::make_unique<GaussianSplatRenderer>("gaussian_splat"));
-    splatRenderers_.push_back(std::make_unique<CircleSplatRenderer>("circle_splat"));
     splatRenderers_.push_back(std::make_unique<SquareSplatRenderer>("square_splat"));
+    splatRenderers_.push_back(std::make_unique<CircleSplatRenderer>("circle_splat"));
+    splatRenderers_.push_back(std::make_unique<GaussianSplatRenderer>("gaussian_splat"));
 
     currentSplatRendererIdx_ = 0;
 }
@@ -46,6 +46,7 @@ void RenderingSystem::switchToNextSplatRenderer()
 
 void RenderingSystem::calculateTotalVoxelsNumber()
 {
+    nTotalVoxels_ = 0;
     for (auto& entity : entities_)
     {
         auto& graphicsComponent = SceneManager::getInstance()->getComponent<GraphicsComponent>(entity, GRAPHICS_COMPONENT_ID);
@@ -69,21 +70,15 @@ void RenderingSystem::render()
     }
     auto& activeCameraComponent = SceneManager::getInstance()->getComponent<CameraComponent>(*activeCamera, CAMERA_COMPONENT_ID);
     glm::mat4 projectionMatrix = activeCameraComponent.getProjectionMatrix();
-
     auto& splatRenderer = splatRenderers_[currentSplatRendererIdx_];
     auto& shaderProgram = splatRenderer->getShaderProgram();
     shaderProgram.useProgram();
-    
-    glm::vec3 sunLightColor = glm::vec3(0.7f, 0.7f, 0.7f);
-    glm::vec4 sunDirection = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
-    GLfloat sunLightAmbientIntensity = 0.5f;
-    shaderProgram.setUniform("sunLight.color", sunLightColor);
-    shaderProgram.setUniform("sunLight.directionViewSpace", glm::vec3(activeCameraComponent.getViewMatrix() * sunDirection));
-    shaderProgram.setUniform("sunLight.ambientIntensity", sunLightAmbientIntensity);
+    shaderProgram.setUniform("sunLight.color", sunLightColor_);
+    shaderProgram.setUniform("sunLight.directionViewSpace", glm::vec3(activeCameraComponent.getViewMatrix() * sunDirection_));
+    shaderProgram.setUniform("sunLight.ambientIntensity", sunLightAmbientIntensity_);
     shaderProgram.setUniform("P", projectionMatrix);
     shaderProgram.setUniform("splatSize", splatSize_);
 
-    int nRenderedObjects = 0;
     for (auto entity : entities_)
     {
         auto& transformComponent = sceneManager->getComponent<TransformComponent>(entity, TRANSFORM_COMPONENT_ID);
@@ -91,7 +86,6 @@ void RenderingSystem::render()
         if (!graphicsComponent.isVisible())
             continue;
         shaderProgram.setUniform("splatColorMultiplier", graphicsComponent.getColor());
-        ++nRenderedObjects;
         splatRenderer->render(transformComponent, graphicsComponent);
     }
 }
@@ -132,14 +126,17 @@ void RenderingSystem::globalFrustumCullingFunction()
         if (activeCameraComponent.getBoundingSphere().intersects(entityBoundingSphere))
         {
             Cone cameraBoundingCone = activeCameraComponent.getBoundingCone();
-            if (entityBoundingSphere.intersects(cameraBoundingCone))
-            {
+            if (entityBoundingSphere.intersects(cameraBoundingCone)) {
                 graphicsComponent.setVisible(true);
                 ++nVisibleObjects_;
+            } else {
+                graphicsComponent.setVisible(false);
             }
-            else graphicsComponent.setVisible(false);
         }
-        else graphicsComponent.setVisible(false);
+        else
+        {
+            graphicsComponent.setVisible(false);
+        }
     }
 }
 

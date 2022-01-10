@@ -16,8 +16,11 @@ private:
 
     void renderEntityColorPicker(EntityId entity);
 
-    bool show_demo_window = false;
+    bool show_demo_window_ = false;
 
     std::pair<int, int> windowSize_;
     std::vector< std::pair<std::string, std::string> >& actionList_;
+
+    std::vector<std::string> entityTypes_;
+    std::string entityTypesStr_;
 };
