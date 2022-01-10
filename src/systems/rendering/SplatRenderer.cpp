@@ -8,6 +8,6 @@ SplatRenderer::SplatRenderer(std::string name) : name_(name)
 void SplatRenderer::render(TransformComponent& transformComponent, GraphicsComponent& graphicsComponent)
 {
     setUniforms(transformComponent, graphicsComponent);
-    draw(transformComponent, graphicsComponent);
+    draw(graphicsComponent);
 }
 

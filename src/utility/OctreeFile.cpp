@@ -8,7 +8,7 @@
 OctreeFile::OctreeFile(std::string name)
 {
     // HEADER
-    std::ifstream octreeHeaderFile("../data/" + name + ".octree");
+    std::ifstream octreeHeaderFile("../data/svo/" + name + ".octree");
     if (octreeHeaderFile)
     {
         std::string headerVariableName;
@@ -26,7 +26,7 @@ OctreeFile::OctreeFile(std::string name)
 
     // NODES
     std::ifstream octreeNodesFile;
-    octreeNodesFile.open("../data/" + name + ".octreenodes", std::ios::binary);
+    octreeNodesFile.open("../data/svo/" + name + ".octreenodes", std::ios::binary);
     nodes_.reserve(header_.nNodes - 1);
     if (octreeNodesFile)
     {
@@ -48,7 +48,7 @@ OctreeFile::OctreeFile(std::string name)
 
     // DATA
     int minMortonNodesCount = 0;
-    std::ifstream octreeDataFile("../data/" + name + ".octreedata", std::ios::binary);
+    std::ifstream octreeDataFile("../data/svo/" + name + ".octreedata", std::ios::binary);
     if (octreeDataFile)
     {
         for (int dataNo = 0; dataNo < header_.nData; ++dataNo)

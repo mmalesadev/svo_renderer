@@ -10,17 +10,22 @@ TransformComponent::TransformComponent(float scale, glm::vec3 position, glm::vec
 
 void TransformComponent::recalculateMatrices(glm::mat4 viewMatrix)
 {
-    ViewModelMatrix_ = viewMatrix * glm::translate(position_) * glm::toMat4(quaternion_) * glm::scale(glm::vec3(scale_));
+    viewModelMatrix_ = viewMatrix * glm::translate(position_) * glm::toMat4(quaternion_) * glm::scale(glm::vec3(scale_));
 }
 
 glm::mat4 TransformComponent::getViewModelMatrix() const
 {
-    return ViewModelMatrix_;
+    return viewModelMatrix_;
 }
 
 float TransformComponent::getScale() const
 {
     return scale_;
+}
+
+void TransformComponent::setScale(float scale)
+{
+    scale_ = scale;
 }
 
 glm::vec3 TransformComponent::getPosition() const

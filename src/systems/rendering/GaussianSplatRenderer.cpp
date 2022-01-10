@@ -22,7 +22,7 @@ void GaussianSplatRenderer::setUniforms(TransformComponent& transformComponent, 
     shaderProgram_.setUniform("midEdgeAlphaValue", midEdgeAlphaValue_);
 }
 
-void GaussianSplatRenderer::draw(TransformComponent& transformComponent, GraphicsComponent& graphicsComponent)
+void GaussianSplatRenderer::draw(GraphicsComponent& graphicsComponent)
 {
     glBindVertexArray(graphicsComponent.getVAO());
     glActiveTexture(GL_TEXTURE0);

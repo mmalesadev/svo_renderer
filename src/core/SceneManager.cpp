@@ -1,12 +1,15 @@
 #include "SceneManager.h"
-#include <sqlite3.h>
 #include "Types.h"
+#include <fstream>
+#include <iostream>
+#include <filesystem>
 
 SceneManager* SceneManager::instance_ = nullptr;
 
 SceneManager::SceneManager()
 {
     instance_ = this;
+    loadEntityTypes();
 
     entityManager_ = std::make_unique<EntityManager>();
     componentManager_ = std::make_unique<ComponentManager>();
@@ -45,80 +48,134 @@ void SceneManager::activateScene(std::string sceneName)
     }
     else
     {
-        loadSceneFromSqliteDb(sceneName);
+        loadSceneFromJsonFile(sceneName);
         activeScene_ = sceneName;
         activateFirstFoundCamera();
     }
 }
 
-void SceneManager::loadSceneFromSqliteDb(std::string sceneName)
+void SceneManager::loadEntityTypes()
 {
-    sqlite3* db;
-    int returnCode = sqlite3_open("../data/database.db", &db);
-    if (returnCode)
+    std::string octreeFilesPath("../data/svo/");
+    std::string extension(".octree");
+    for (auto& p : std::filesystem::recursive_directory_iterator(octreeFilesPath))
     {
-        spdlog::get("logger")->critical("Can't open database: {0}", sqlite3_errmsg(db));
-        sqlite3_close(db);
-        return;
+        if (p.path().extension() == extension)
+        {
+            EntityType entityType{ "svo", "", 0.0f };
+            std::string fileNameWithoutExtension = p.path().stem().string();
+            addEntityType(fileNameWithoutExtension, entityType);
+        }
     }
 
-    scenes_.insert(sceneName);
+    EntityType cameraEntityType{ "", "perspective", 50.0f };
+    addEntityType("camera", cameraEntityType);
+}
 
-    auto& loadSceneEntityFromDbCb = [](void* sceneManager, int count, char** data, char** columns)
+void SceneManager::loadSceneFromJsonFile(std::string sceneName)
+{
+    std::ifstream i("../data/scenes/" + sceneName + ".json");
+    i >> sceneJsonData_[sceneName];
+    for (auto& x : sceneJsonData_[sceneName])
     {
-        SPDLOG_DEBUG(spdlog::get("logger"), "Loading entity from DB.");
-        for (int i = 0; i < count; ++i) SPDLOG_DEBUG(spdlog::get("logger"), "{0} = {1}", columns[i], data[i] ? data[i] : nullptr);
-
-        // CONSTRUCTING ENTITY FROM COMPONENTS 
-        // TODO: Przerzuæ do entity creator
-        // Dodaj name do Entity i w bazie danych w tabeli SceneEntities
         std::unique_ptr<TransformComponent> newTransformComponent;
         std::unique_ptr<GraphicsComponent> newGraphicsComponent;
         std::unique_ptr<CameraComponent> newCameraComponent;
 
-        newTransformComponent = std::make_unique<TransformComponent>(std::stof(data[3]),
-            glm::vec3(std::stof(data[4]), std::stof(data[5]), std::stof(data[6])),
-            glm::vec3(glm::radians(std::stof(data[7])), glm::radians(std::stof(data[8])), glm::radians(std::stof(data[9])))
+        newTransformComponent = std::make_unique<TransformComponent>(x["scale"],
+            glm::vec3(x["position"][0], x["position"][1], x["position"][2]),
+            glm::vec3(x["rotation"][0], x["rotation"][1], x["rotation"][2])
             );
-        std::string graphicsComponentType(data[2]);
-        if (graphicsComponentType == "svo")
+        std::string entityTypeName = x["entity"];
+
+        auto& entityType = entityTypes_[entityTypeName];
+        if (entityType.graphicsComponent == "svo")
         {
-            SPDLOG_DEBUG(spdlog::get("logger"), "Constructing SVOComponent. Name: {0}", data[1]);
-            newGraphicsComponent = std::make_unique<GraphicsComponent>(data[1]);
+            if (loadedGraphicsComponents_.find(entityTypeName) != loadedGraphicsComponents_.end()) {
+                newGraphicsComponent = std::make_unique<GraphicsComponent>();
+                *newGraphicsComponent = loadedGraphicsComponents_[entityTypeName];
+                newGraphicsComponent->setColor(glm::vec4(x["color"][0], x["color"][1], x["color"][2], x["color"][3]));
+            }
+            else {
+                newGraphicsComponent = std::make_unique<GraphicsComponent>(entityTypeName, glm::vec4(x["color"][0], x["color"][1], x["color"][2], x["color"][3]));
+                loadedGraphicsComponents_[entityTypeName] = *newGraphicsComponent;
+            }
         }
-        std::string cameraComponentType(data[10]);
-        if (cameraComponentType == "perspective")
+        if (entityType.cameraComponent == "perspective")
         {
-            newCameraComponent = std::make_unique<CameraComponent>(std::stof(data[11]));
+            newCameraComponent = std::make_unique<CameraComponent>(x["speed"]);
         }
 
-        static_cast<SceneManager*>(sceneManager)->createEntity(
-            std::stoi(data[0]),        // id
-            std::string(data[1]),      // name
-            newTransformComponent,
-            newGraphicsComponent,
-            newCameraComponent);
-        return 0;
-    };
-
-    char* sqlQueryErrorMsg = 0;
-    std::string query = "SELECT se.id, e.name, e.graphicsComponent, se.scale, se.posX, se.posY, se.posZ, se.rotX, se.rotY, se.rotZ, e.cameraComponent, e.cameraSpeed FROM SceneEntities" +
-        std::string(" AS se JOIN Scenes AS s ON s.id = se.sceneId JOIN Entities AS e ON e.id = se.entityId WHERE s.name = '") + sceneName + "'";
-    returnCode = sqlite3_exec(db,
-        query.c_str(),
-        loadSceneEntityFromDbCb,
-        this,
-        &sqlQueryErrorMsg
-    );
-
-
-    if (returnCode != SQLITE_OK)
-    {
-        spdlog::get("logger")->critical("SQL error: {0}", sqlQueryErrorMsg);
-        sqlite3_free(sqlQueryErrorMsg);
+        createEntity(entityTypeName, newTransformComponent, newGraphicsComponent, newCameraComponent);
     }
-    sqlite3_close(db);
-    return;
+}
+
+void SceneManager::saveActiveScene()
+{
+    std::ofstream o("../data/scenes/" + activeScene_ + ".json");
+    nlohmann::json outJson;
+
+    for (auto& entity : entityManager_->getAllEntities())
+    {
+        nlohmann::json outEntityJson;
+        outEntityJson["entity"] = entityManager_->getEntityName(entity);
+        if (entityManager_->getComponentSignature(entity).test(GRAPHICS_COMPONENT_ID)) {
+            auto& graphicsComponent = getComponent<GraphicsComponent>(entity, GRAPHICS_COMPONENT_ID);
+            auto& color = graphicsComponent.getColor();
+            outEntityJson["color"] = { color[0], color[1], color[2], color[3] };
+        }
+        if (entityManager_->getComponentSignature(entity).test(TRANSFORM_COMPONENT_ID)) {
+            auto& transformComponent = getComponent<TransformComponent>(entity, TRANSFORM_COMPONENT_ID);
+            auto& position = transformComponent.getPosition();
+            outEntityJson["position"] = { position[0], position[1], position[2] };
+            outEntityJson["scale"] = transformComponent.getScale();
+            auto& eulerAngles = glm::eulerAngles(transformComponent.getQuaternion());
+            outEntityJson["rotation"] = { eulerAngles[0], eulerAngles[1], eulerAngles[2] };
+        }
+        if (entityManager_->getComponentSignature(entity).test(CAMERA_COMPONENT_ID)) {
+            auto& cameraComponent = getComponent<CameraComponent>(entity, CAMERA_COMPONENT_ID);
+            outEntityJson["speed"] = cameraComponent.getSpeed();
+        }
+        outJson.push_back(outEntityJson);
+    }
+    
+    o << std::setw(4) << outJson << std::endl;
+}
+
+void SceneManager::addNewEntity(std::string entityTypeName)
+{
+    std::unique_ptr<TransformComponent> newTransformComponent;
+    std::unique_ptr<GraphicsComponent> newGraphicsComponent;
+    std::unique_ptr<CameraComponent> newCameraComponent;
+
+    newTransformComponent = std::make_unique<TransformComponent>(50.0f, glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
+    auto& entityType = entityTypes_[entityTypeName];
+    if (entityType.graphicsComponent == "svo")
+    {
+        if (loadedGraphicsComponents_.find(entityTypeName) != loadedGraphicsComponents_.end()) {
+            newGraphicsComponent = std::make_unique<GraphicsComponent>();
+            *newGraphicsComponent = loadedGraphicsComponents_[entityTypeName];
+            newGraphicsComponent->setColor(glm::vec4(1, 1, 1, 1));
+        }
+        else {
+            newGraphicsComponent = std::make_unique<GraphicsComponent>(entityTypeName, glm::vec4(1, 1, 1, 1));
+            loadedGraphicsComponents_[entityTypeName] = *newGraphicsComponent;
+        }
+    }
+    if (entityType.cameraComponent == "perspective")
+    {
+        newCameraComponent = std::make_unique<CameraComponent>(entityType.cameraSpeed);
+    }
+
+    createEntity(entityTypeName, newTransformComponent, newGraphicsComponent, newCameraComponent);
+}
+
+void SceneManager::removeEntity(EntityId entity)
+{
+    ComponentSignature emptyComponentSignature;
+    entityManager_->setComponentSignature(entity, emptyComponentSignature);
+    systemManager_->updateEntityInSystems(entity, emptyComponentSignature);
+    entityManager_->entityRemoved(entity);
 }
 
 void SceneManager::updateSystems()
@@ -144,12 +201,11 @@ void SceneManager::activateFirstFoundCamera()
     return;
 }
 
-void SceneManager::createEntity(unsigned int id, std::string name,
-    std::unique_ptr<TransformComponent>& transformComponentPtr,
+void SceneManager::createEntity(std::string entityTypeName, std::unique_ptr<TransformComponent>& transformComponentPtr,
     std::unique_ptr<GraphicsComponent>& graphicsComponentPtr,
     std::unique_ptr<CameraComponent>& cameraComponentPtr)
 {
-    EntityId entityId = entityManager_->createEntity(); 
+    EntityId entityId = entityManager_->createEntity(entityTypeName);
 
     if (transformComponentPtr)
     {
@@ -165,5 +221,10 @@ void SceneManager::createEntity(unsigned int id, std::string name,
     }
     
     return;
+}
+
+void SceneManager::addEntityType(std::string name, EntityType entityType)
+{
+    entityTypes_[name] = entityType;
 }
 

@@ -21,40 +21,41 @@ out vec3 normal;
 void main()
 {
     vec4 voxelPosViewSpace = MV * gl_in[0].gl_Position;
+    vec4 voxelPosClipSpace = P * voxelPosViewSpace;
+    voxelPosClipSpace /= voxelPosClipSpace.w;
+
+    float voxelOffset = splatSize * (scale/gridLength) * 1.414213;     // 1.414213 = sqrt(2)
+
+    vec4 voxelRightEdgeMidPointClipSpace = P * vec4(voxelPosViewSpace.xy + vec2(0.5, 0) * voxelOffset, voxelPosViewSpace.zw);
+    voxelRightEdgeMidPointClipSpace /= voxelRightEdgeMidPointClipSpace.w;
+
+    float voxelHalfEdgeLengthClipSpace = distance(voxelPosClipSpace, voxelRightEdgeMidPointClipSpace);
+    float voxelFrustumCullingBorder = 1 + voxelHalfEdgeLengthClipSpace;
+    
+    if (voxelPosClipSpace.x < -voxelFrustumCullingBorder || voxelPosClipSpace.x > voxelFrustumCullingBorder ||
+        voxelPosClipSpace.y < -voxelFrustumCullingBorder || voxelPosClipSpace.y > voxelFrustumCullingBorder)
+        return;
 
     color = voxel[0].color;
     normal = voxel[0].normal;
-
     vec4 normalViewSpace = MV * vec4(normal, 0);
 
     // Skip the voxel if its face is not seen by the camera
     if (dot(vec3(0,0,0) - voxelPosViewSpace.xyz, normalViewSpace.xyz) < 0)
-    {
         return;
-    }
-
-    float voxelOffset = (scale/gridLength) * 1.414213;     // 1.414213 = sqrt(2)
-    voxelOffset = splatSize * voxelOffset;
-
-    vec4 voxelPosScreenSpace = P * voxelPosViewSpace;
-    voxelPosScreenSpace /= voxelPosScreenSpace.w;
 
     vec2 bottomLeft = voxelPosViewSpace.xy + vec2(-0.5, -0.5) * voxelOffset;
     gl_Position = P * vec4(bottomLeft, voxelPosViewSpace.zw);
     EmitVertex();   
-
     vec2 bottomRight = voxelPosViewSpace.xy + vec2(0.5, -0.5) * voxelOffset;
     gl_Position = P * vec4(bottomRight, voxelPosViewSpace.zw);
     EmitVertex();
-
     vec2 topLeft = voxelPosViewSpace.xy + vec2(-0.5, 0.5) * voxelOffset;
     gl_Position = P * vec4(topLeft, voxelPosViewSpace.zw);
     EmitVertex();
-
     vec2 topRight = voxelPosViewSpace.xy + vec2(0.5, 0.5) * voxelOffset;
     gl_Position = P * vec4(topRight, voxelPosViewSpace.zw);
     EmitVertex();
 
     EndPrimitive();
-
 }

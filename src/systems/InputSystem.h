@@ -23,7 +23,7 @@ private:
     void toggleGui();
 
     void prepareGlfwKeyMaps();
-    void loadActionKeyMapFromSqliteDb();
+    void loadActionKeyMapFromJsonFile();
     void addActionKey(std::string action, std::string key);
 
     void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);

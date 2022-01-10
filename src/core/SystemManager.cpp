@@ -21,6 +21,7 @@ SystemManager::SystemManager()
 
     auto guiSystem = std::make_unique<GuiSystem>(inputSystem->getActionList());
     ComponentSignature guiSystemSignature;
+    guiSystemSignature.set(TRANSFORM_COMPONENT_ID);
     guiSystemSignature.set(GRAPHICS_COMPONENT_ID);
     guiSystem->setComponentSignature(guiSystemSignature);
 

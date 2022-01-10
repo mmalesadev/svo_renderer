@@ -6,18 +6,18 @@
 
 GraphicsComponent::GraphicsComponent() :
     VAO_(0), VBO_(0), bbVAO_(0), bbVBO_(0), bbEBO_(0), bsVAO_(0), bsVBO_(0), bsEBO_(0),
-    boundingSphereRadius_(0.0f), visible_(true), color_(1, 1, 1, 1)
+    boundingSphereRadius_(0.0f), visible_(true)
 {
 }
 
-GraphicsComponent::GraphicsComponent(std::string name) : GraphicsComponent()
-{
+GraphicsComponent::GraphicsComponent(std::string name, glm::vec4 color) : GraphicsComponent() {
     name_ = name;
+    color_ = color;
     graphicsComponentType_ = GraphicsComponentType::GRAPHICS_COMPONENT_SVO;
 
     // Loading nodes to octreeFile_ structure
-    octreeFile_ = std::make_unique<OctreeFile>(name);
-    octree_ = std::make_unique<Octree>(*octreeFile_);
+    octreeFile_ = std::make_shared<OctreeFile>(name);
+    octree_ = std::make_shared<Octree>(*octreeFile_);
 
     glGenVertexArrays(1, &VAO_);
     glGenBuffers(1, &VBO_);
@@ -25,7 +25,7 @@ GraphicsComponent::GraphicsComponent(std::string name) : GraphicsComponent()
     glBindVertexArray(VAO_);
     glBindBuffer(GL_ARRAY_BUFFER, VBO_);
     auto octreeData = octreeFile_->getData();
-    glBufferData(GL_ARRAY_BUFFER, (octreeFile_->getData().size() - 1) * sizeof(OctreeFile::Data), &octreeData[1], GL_STATIC_DRAW);    // We skip the first voxel, which is a root
+    glBufferData(GL_ARRAY_BUFFER, (octreeFile_->getData().size()) * sizeof(OctreeFile::Data), &octreeData[0], GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(OctreeFile::Data), (GLvoid*)offsetof(OctreeFile::Data, position));

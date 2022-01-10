@@ -1,7 +1,9 @@
 #include "InputSystem.h"
 #include "ProgramVariables.h"
 #include <functional>
-#include <sqlite3.h>
+#include <fstream>
+#include <iostream>
+#include <json.h>
 
 InputSystem::InputSystem() : inputMode_(InputMode::GUI_MODE)
 {
@@ -21,7 +23,7 @@ InputSystem::InputSystem() : inputMode_(InputMode::GUI_MODE)
     keyCallbackActionMap_[InputMode::FREE_ROAM_MODE]["TOGGLE_GUI"] = std::bind(&InputSystem::toggleGui, this);
     keyCallbackActionMap_[InputMode::GUI_MODE]["TOGGLE_GUI"] = std::bind(&InputSystem::toggleGui, this);
     
-    loadActionKeyMapFromSqliteDb();
+    loadActionKeyMapFromJsonFile();
 
     prepareGlfwKeyMaps();
 
@@ -304,40 +306,28 @@ void InputSystem::prepareGlfwKeyMaps()
         glfwKeyMapReverse_[mapping.second] = mapping.first;
 }
 
-void InputSystem::loadActionKeyMapFromSqliteDb()
+void InputSystem::loadActionKeyMapFromJsonFile()
 {
-    sqlite3* db;
-    int returnCode = sqlite3_open("../data/database.db", &db);
-    if (returnCode)
-    {
-        spdlog::get("logger")->critical("Can't open database: {0}", sqlite3_errmsg(db));
-        sqlite3_close(db);
-        return;
-    }
+    nlohmann::json configJson;
+    std::ifstream i("../data/config.json");
+    i >> configJson;
+    auto& actions = configJson["actions"];
 
-    auto& loadActionKeysFromDbCb = [](void *inputSystem, int count, char **data, char **columns)
+    auto addActionLambda = [this, &actions](std::string action) -> void
     {
-        SPDLOG_DEBUG(spdlog::get("logger"), "Loading action keys from DB.");
-        for (int i = 0; i < count; ++i) SPDLOG_DEBUG(spdlog::get("logger"), "{0} = {1}", columns[i], data[i] ? data[i] : nullptr);
-        static_cast<InputSystem*>(inputSystem)->addActionKey(std::string(data[0]), std::string(data[1]));
-        return 0;
+        addActionKey(action, actions[action]);
     };
 
-    char* sqlQueryErrorMsg = 0;
-    std::string query = "SELECT ak.action, ak.key FROM ActionKeys AS ak";
-    returnCode = sqlite3_exec(db,
-        query.c_str(),
-        loadActionKeysFromDbCb,
-        this,
-        &sqlQueryErrorMsg
-    );
-
-    if (returnCode != SQLITE_OK)
-    {
-        spdlog::get("logger")->critical("SQL error: {0}", sqlQueryErrorMsg);
-        sqlite3_free(sqlQueryErrorMsg);
-    }
-    sqlite3_close(db);
+    addActionLambda("MOVE_CAMERA_FORWARD");
+    addActionLambda("MOVE_CAMERA_BACKWARD");
+    addActionLambda("MOVE_CAMERA_LEFT");
+    addActionLambda("MOVE_CAMERA_RIGHT");
+    addActionLambda("MOVE_CAMERA_UP");
+    addActionLambda("MOVE_CAMERA_DOWN");
+    addActionLambda("ROLL_CAMERA_LEFT");
+    addActionLambda("ROLL_CAMERA_RIGHT");
+    addActionLambda("TOGGLE_FREE_ROAM");
+    addActionLambda("TOGGLE_GUI");
 }
 
 void InputSystem::addActionKey(std::string action, std::string key)

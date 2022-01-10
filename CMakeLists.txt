@@ -98,17 +98,6 @@ else()
     message(SEND_ERROR "Spdlog was not found.")
 endif()
 
-# Sqlite
-set(DEFAULT_SQLITE_DIR "sqlite")
-find_path(SQLITE_HEADERS_DIR sqlite3.h ${LIB_DIR}/${DEFAULT_SQLITE_DIR}/include)
-find_library(SQLITE_LIB NAMES sqlite3 PATHS ${LIB_DIR}/${DEFAULT_SQLITE_DIR}/${TARGET_SYSTEM})
-if(SQLITE_HEADERS_DIR AND SQLITE_LIB)
-    set(LIBS ${LIBS} ${SQLITE_LIB})
-    include_directories( ${SQLITE_HEADERS_DIR} )
-else()
-    message(SEND_ERROR "Sqlite was not found.")
-endif()    
-
 # Libmorton
 set(DEFAULT_LIBMORTON_DIR "libmorton")
 find_path(LIBMORTON_HEADERS_DIR morton.h ${LIB_DIR}/${DEFAULT_LIBMORTON_DIR}/include)
@@ -156,10 +145,19 @@ else()
     message(SEND_ERROR "STB was not found.")
 endif()
 
-### Link target
-if(MSVC)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+# Json
+set(DEFAULT_JSON_DIR "json")
+find_path(JSON_HEADERS_DIR json.h ${LIB_DIR}/${DEFAULT_JSON_DIR}/include)
+if(JSON_HEADERS_DIR)
+    include_directories( ${JSON_HEADERS_DIR} )
+else()
+    message(SEND_ERROR "JSON was not found.")
 endif()
+
+### Link target
+#if(MSVC)
+#    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+#endif()
 add_executable(svo_renderer "")
 target_sources(svo_renderer PRIVATE ${ALL_SRCS} ${SHADER_FILES})
 
