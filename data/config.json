@@ -1,14 +1,16 @@
 {
-	"actions": {
-		"MOVE_CAMERA_FORWARD": "W",
-		"MOVE_CAMERA_BACKWARD": "S",
-		"MOVE_CAMERA_LEFT": "A",
-		"MOVE_CAMERA_RIGHT": "D",
-		"MOVE_CAMERA_UP": "SPACE",
-		"MOVE_CAMERA_DOWN": "LEFT_CONTROL",
-		"ROLL_CAMERA_LEFT": "Q",
-		"ROLL_CAMERA_RIGHT": "E",
-		"TOGGLE_FREE_ROAM": "R",
-		"TOGGLE_GUI": "F"
-	}
+    "actions": {
+        "MOVE_CAMERA_BACKWARD": "S",
+        "MOVE_CAMERA_DOWN": "LEFT_CONTROL",
+        "MOVE_CAMERA_FORWARD": "W",
+        "MOVE_CAMERA_LEFT": "A",
+        "MOVE_CAMERA_RIGHT": "D",
+        "MOVE_CAMERA_UP": "SPACE",
+        "ROLL_CAMERA_LEFT": "Q",
+        "ROLL_CAMERA_RIGHT": "E",
+        "TOGGLE_FREE_ROAM": "R",
+        "TOGGLE_GUI": "F"
+    },
+    "autoLevelOfDetail": false,
+    "cullInvisibleFaces": true
 }

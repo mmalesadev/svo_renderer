@@ -48,7 +48,6 @@ void SystemManager::updateEntityInSystems(EntityId entityId, ComponentSignature 
             system->addEntity(entityId);
         else
             system->removeEntity(entityId);
-
-        renderingSystem_->calculateTotalVoxelsNumber();
     }
+    renderingSystem_->calculateTotalVoxelsNumber();
 }

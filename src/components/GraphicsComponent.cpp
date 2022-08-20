@@ -5,9 +5,12 @@
 #include "SceneManager.h"
 
 GraphicsComponent::GraphicsComponent() :
-    VAO_(0), VBO_(0), bbVAO_(0), bbVBO_(0), bbEBO_(0), bsVAO_(0), bsVBO_(0), bsEBO_(0),
     boundingSphereRadius_(0.0f), visible_(true)
 {
+
+    auto renderingSystem = SceneManager::getInstance()->getRenderingSystem();
+    maxSvoDepth_ = renderingSystem->getMaxSvoDepth();
+    currentSvoLodIdx_ = maxSvoDepth_ - 1;
 }
 
 GraphicsComponent::GraphicsComponent(std::string name, glm::vec4 color) : GraphicsComponent() {
@@ -15,172 +18,71 @@ GraphicsComponent::GraphicsComponent(std::string name, glm::vec4 color) : Graphi
     color_ = color;
     graphicsComponentType_ = GraphicsComponentType::GRAPHICS_COMPONENT_SVO;
 
-    // Loading nodes to octreeFile_ structure
-    octreeFile_ = std::make_shared<OctreeFile>(name);
-    octree_ = std::make_shared<Octree>(*octreeFile_);
+    for (unsigned int depth = 1; depth <= maxSvoDepth_; ++depth) {
+        unsigned int lodIdx = depth - 1;
+        octreeFiles_.push_back(std::make_shared<OctreeFile>(name, depth));
+        VAOs_.push_back(GLuint());
+        glGenVertexArrays(1, &VAOs_[lodIdx]);
+        VBOs_.push_back(GLuint());
+        glGenBuffers(1, &VBOs_[lodIdx]);
 
-    glGenVertexArrays(1, &VAO_);
-    glGenBuffers(1, &VBO_);
+        glBindVertexArray(VAOs_[lodIdx]);
+        glBindBuffer(GL_ARRAY_BUFFER, VBOs_[lodIdx]);
+        auto octreeData = octreeFiles_[lodIdx]->getData();
+        glBufferData(GL_ARRAY_BUFFER, (octreeFiles_[lodIdx]->getData().size()) * sizeof(OctreeFile::Data), &octreeData[0], GL_STATIC_DRAW);
 
-    glBindVertexArray(VAO_);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_);
-    auto octreeData = octreeFile_->getData();
-    glBufferData(GL_ARRAY_BUFFER, (octreeFile_->getData().size()) * sizeof(OctreeFile::Data), &octreeData[0], GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(OctreeFile::Data), (GLvoid*)offsetof(OctreeFile::Data, position));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(OctreeFile::Data), (GLvoid*)offsetof(OctreeFile::Data, color));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(OctreeFile::Data), (GLvoid*)offsetof(OctreeFile::Data, normal));
-    //printOctreeNodeInfo();
-
-    // Determining a bounding box.
-    glGenVertexArrays(1, &bbVAO_);
-    glGenBuffers(1, &bbVBO_);
-    glGenBuffers(1, &bbEBO_);
-
-    // Skipping the first voxel (it's root voxel with (x,y,z) = (-0.5, -0.5, -0.5)).
-    GLfloat minX, minY, minZ, maxX, maxY, maxZ;
-    minX = maxX = octreeData[1].position.x;
-    minY = maxY = octreeData[1].position.y;
-    minZ = maxZ = octreeData[1].position.z;
-
-    for (int i = 1; i < octreeData.size(); ++i)
-    {
-        // Skip nodes with all values set to 0.5f - those arent real nodes
-        if (octreeData[i].position.x == octreeData[i].position.y &&
-            octreeData[i].position.y == octreeData[i].position.z &&
-            octreeData[i].position.z == -0.5f) continue;
-
-        if (octreeData[i].position.x < minX) minX = octreeData[i].position.x;
-        if (octreeData[i].position.y < minY) minY = octreeData[i].position.y;
-        if (octreeData[i].position.z < minZ) minZ = octreeData[i].position.z;
-        if (octreeData[i].position.x > maxX) maxX = octreeData[i].position.x;
-        if (octreeData[i].position.y > maxY) maxY = octreeData[i].position.y;
-        if (octreeData[i].position.z > maxZ) maxZ = octreeData[i].position.z;
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(OctreeFile::Data), (GLvoid*)offsetof(OctreeFile::Data, position));
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(OctreeFile::Data), (GLvoid*)offsetof(OctreeFile::Data, color));
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(OctreeFile::Data), (GLvoid*)offsetof(OctreeFile::Data, normal));
     }
 
-    boundingBoxVertices_ = {
-        glm::vec4(minX, minY, minZ, 1.0),
-        glm::vec4(maxX, minY, minZ, 1.0),
-        glm::vec4(maxX, maxY, minZ, 1.0),
-        glm::vec4(minX, maxY, minZ, 1.0),
-        glm::vec4(minX, minY, maxZ, 1.0),
-        glm::vec4(maxX, minY, maxZ, 1.0),
-        glm::vec4(maxX, maxY, maxZ, 1.0),
-        glm::vec4(minX, maxY, maxZ, 1.0)
-    };
+    // Determining a bounding sphere.
 
-    GLushort boundingCubeElements[] = {
-        0, 1, 2, 3,
-        4, 5, 6, 7,
-        0, 4, 1, 5, 2, 6, 3, 7
-    };
+    // Skipping the first voxel (it's root voxel with (x,y,z) = (-0.5, -0.5, -0.5)).
+    auto maxDepthOctreeData = octreeFiles_[maxSvoDepth_-1]->getData();
+    GLfloat minX, minY, minZ, maxX, maxY, maxZ;
+    minX = maxX = maxDepthOctreeData[1].position.x;
+    minY = maxY = maxDepthOctreeData[1].position.y;
+    minZ = maxZ = maxDepthOctreeData[1].position.z;
 
-    glBindVertexArray(bbVAO_);
-    glBindBuffer(GL_ARRAY_BUFFER, bbVBO_);
-    glBufferData(GL_ARRAY_BUFFER, boundingBoxVertices_.size() * sizeof(boundingBoxVertices_[0]), boundingBoxVertices_.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bbEBO_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(boundingCubeElements), boundingCubeElements, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+    for (int i = 1; i < maxDepthOctreeData.size(); ++i)
+    {
+        // Skip nodes with all values set to 0.5f - those arent real nodes
+        if (maxDepthOctreeData[i].position.x == maxDepthOctreeData[i].position.y &&
+            maxDepthOctreeData[i].position.y == maxDepthOctreeData[i].position.z &&
+            maxDepthOctreeData[i].position.z == -0.5f) continue;
 
-    // Bounding Sphere
-    glGenVertexArrays(1, &bsVAO_);
-    glGenBuffers(1, &bsVBO_);
-    glGenBuffers(1, &bsEBO_);
+        if (maxDepthOctreeData[i].position.x < minX) minX = maxDepthOctreeData[i].position.x;
+        if (maxDepthOctreeData[i].position.y < minY) minY = maxDepthOctreeData[i].position.y;
+        if (maxDepthOctreeData[i].position.z < minZ) minZ = maxDepthOctreeData[i].position.z;
+        if (maxDepthOctreeData[i].position.x > maxX) maxX = maxDepthOctreeData[i].position.x;
+        if (maxDepthOctreeData[i].position.y > maxY) maxY = maxDepthOctreeData[i].position.y;
+        if (maxDepthOctreeData[i].position.z > maxZ) maxZ = maxDepthOctreeData[i].position.z;
+    }
 
     glm::vec3 midPoint(maxX - minX, maxY - minY, maxZ - minZ);
     boundingSphereRadius_ = glm::length(midPoint - glm::vec3(maxX, maxY, maxZ));
-    int sectorCount = 20;
-    int stackCount = 20;
-
-    float x, y, z, xy;                  // vertex position
-    float lengthInv = 1.0f / boundingSphereRadius_;    // vertex normal
-
-    float PI = std::acos(-1);
-
-    float sectorStep = 2 * PI / sectorCount;
-    float stackStep = PI / stackCount;
-    float sectorAngle, stackAngle;
-
-    for (int i = 0; i <= stackCount; ++i)
-    {
-        stackAngle = PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
-        xy = boundingSphereRadius_ * cosf(stackAngle);             // r * cos(u)
-        z = boundingSphereRadius_ * sinf(stackAngle);              // r * sin(u)
-
-        // add (sectorCount+1) vertices per stack
-        // the first and last vertices have same position and normal, but different tex coords
-        for (int j = 0; j <= sectorCount; ++j)
-        {
-            sectorAngle = j * sectorStep;           // starting from 0 to 2pi
-
-            // vertex position (x, y, z)
-            x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
-            y = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
-            boundingSphereVertices_.emplace_back(x, y, z);
-        }
-    }
-
-    for (int i = 0; i <= stackCount - 1; ++i)
-    {
-        for (int j = 0; j <= sectorCount - 1; ++j)
-        {
-            boundingSphereElements_.push_back((i + 1) * sectorCount + j);
-            boundingSphereElements_.push_back((i + 1) * sectorCount + (j + 1));
-            boundingSphereElements_.push_back(i * sectorCount + (j + 1));
-
-            boundingSphereElements_.push_back(i * sectorCount + (j + 1));
-            boundingSphereElements_.push_back(i * sectorCount + j);
-            boundingSphereElements_.push_back((i + 1) * sectorCount + j);
-        }
-    }
-
-    glBindVertexArray(bsVAO_);
-    glBindBuffer(GL_ARRAY_BUFFER, bsVBO_);
-    glBufferData(GL_ARRAY_BUFFER, boundingSphereVertices_.size() * sizeof(boundingSphereVertices_[0]), boundingSphereVertices_.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsEBO_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, boundingSphereElements_.size() * sizeof(GLushort), boundingSphereElements_.data(), GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 }
 
-void GraphicsComponent::printOctreeNodeInfo()
+void GraphicsComponent::decreaseLevelOfDetail()
 {
-    int i = 0;
-    auto& data = octreeFile_->getData();
-    for (auto& node : octreeFile_->getNodes())
+    if (currentSvoLodIdx_ == 0)
     {
-        std::cout << "[" << i << "]" << std::endl;
-        std::cout << "base: " << node.childrenBaseAddress << std::endl;
-        std::cout << "offsets: ";
-        for (int j = 0; j < 8; ++j)
-        {
-            std::cout << (int)node.childrenOffsets[j] << " ";
-            if ((int)node.childrenBaseAddress + (int)node.childrenOffsets[j] > i)
-            {
-                spdlog::get("logger")->critical("Child base address is greater than or equals index! {0} {1}",
-                    node.childrenBaseAddress + (int)node.childrenOffsets[j], i);
-            }
-        }
-        std::cout << std::endl << "../data address: " << node.dataAddress << std::endl;
-        std::cout << "rgb: " << data[node.dataAddress].color.r << " " << data[node.dataAddress].color.g << " " << data[node.dataAddress].color.b << std::endl;
-        std::cout << "xyz: " << data[node.dataAddress].position.x << " " << data[node.dataAddress].position.y << " " << data[node.dataAddress].position.z << std::endl;
-        std::cout << "morton: " << std::bitset<64>(data[node.dataAddress].mortonCode) << std::endl;
-        int mortonLen = 0;
-        for (uint64_t i = 0; i < 64; ++i)
-        {
-            uint64_t m = data[node.dataAddress].mortonCode;
-
-            if (m & (static_cast<uint64_t>(1) << i))
-            {
-                mortonLen = i + 1;
-            }
-        }
-        std::cout << "morton len: " << mortonLen << std::endl;
-        std::cout << std::endl;
-        ++i;
+        currentSvoLodIdx_ = maxSvoDepth_ - 1;
+        return;
     }
+    currentSvoLodIdx_ -= 1;
+}
+
+void GraphicsComponent::increaseLevelOfDetail()
+{
+    if (currentSvoLodIdx_ == maxSvoDepth_ - 1)
+    {
+        currentSvoLodIdx_ = 0;
+        return;
+    }
+    currentSvoLodIdx_ += 1;
 }

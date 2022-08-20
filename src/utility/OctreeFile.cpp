@@ -5,10 +5,11 @@
 #include <iostream>
 #include <bitset>
 
-OctreeFile::OctreeFile(std::string name)
+OctreeFile::OctreeFile(std::string name, unsigned int depth)
 {
     // HEADER
-    std::ifstream octreeHeaderFile("../data/svo/" + name + ".octree");
+    unsigned int gridResolution = std::pow(2, depth);
+    std::ifstream octreeHeaderFile("../data/svo/" + name + "/" + name + "_" + std::to_string(gridResolution) + ".octree");
     if (octreeHeaderFile)
     {
         std::string headerVariableName;
@@ -26,7 +27,7 @@ OctreeFile::OctreeFile(std::string name)
 
     // NODES
     std::ifstream octreeNodesFile;
-    octreeNodesFile.open("../data/svo/" + name + ".octreenodes", std::ios::binary);
+    octreeNodesFile.open("../data/svo/" + name + "/" + name + "_" + std::to_string(gridResolution) + ".octreenodes", std::ios::binary);
     nodes_.reserve(header_.nNodes - 1);
     if (octreeNodesFile)
     {
@@ -48,21 +49,26 @@ OctreeFile::OctreeFile(std::string name)
 
     // DATA
     int minMortonNodesCount = 0;
-    std::ifstream octreeDataFile("../data/svo/" + name + ".octreedata", std::ios::binary);
+    std::ifstream octreeDataFile("../data/svo/" + name + "/" + name + "_" + std::to_string(gridResolution) + ".octreedata", std::ios::binary);
     if (octreeDataFile)
     {
-        for (int dataNo = 0; dataNo < header_.nData; ++dataNo)
+        // First voxel needs to be ignored (it's a superficial, always black voxel, at (0,0,0))
+        octreeDataFile.ignore(sizeof(uint64_t) + sizeof(glm::vec3) + sizeof(glm::vec3));
+        // The second node is always at (0, 0, 0) for every level, therefore we need to
+        // transform each voxels, so that it displays correctly when switching LOD.
+        // At the end we substract 0.5f so that everything is centered around (0, 0, 0)
+        float voxelTranslation = (0.5f / (float)gridResolution) - 0.5f;
+        for (int dataNo = 0; dataNo < header_.nData - 1; ++dataNo)
         {
             OctreeFile::Data data;
             uint64_t mortonCode;
             uint32_t gridPosition[3];
             octreeDataFile.read(reinterpret_cast<char*> (&mortonCode), sizeof(uint64_t));
             morton3D_64_decode(mortonCode, gridPosition[0], gridPosition[1], gridPosition[2]);
-            data.position.x = (1.0f / header_.gridLength) * (float)gridPosition[0] - 0.5f;
-            data.position.y = (1.0f / header_.gridLength) * (float)gridPosition[1] - 0.5f;
-            data.position.z = (1.0f / header_.gridLength) * (float)gridPosition[2] - 0.5f;
+            data.position.x = (1.0f / header_.gridLength) * (float)gridPosition[0] + voxelTranslation;
+            data.position.y = (1.0f / header_.gridLength) * (float)gridPosition[1] + voxelTranslation;
+            data.position.z = (1.0f / header_.gridLength) * (float)gridPosition[2] + voxelTranslation;
             octreeDataFile.read(reinterpret_cast<char*> (&data.color), sizeof(glm::vec3));
-            //data.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
             octreeDataFile.read(reinterpret_cast<char*> (&data.normal), sizeof(glm::vec3));
             data.mortonCode = mortonCode;
             data_.push_back(data);

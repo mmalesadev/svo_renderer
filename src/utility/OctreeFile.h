@@ -34,7 +34,7 @@ public:
         uint64_t mortonCode;
     };
 
-    OctreeFile(std::string name);
+    OctreeFile(std::string name, unsigned int depth);
 
     Header& getHeader();
     std::vector<Node>& getNodes();

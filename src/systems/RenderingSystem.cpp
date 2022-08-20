@@ -2,6 +2,9 @@
 #include "ProgramVariables.h"
 #include "SceneManager.h"
 
+#include <fstream>
+#include <json.h>
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
@@ -11,9 +14,6 @@
 
 RenderingSystem::RenderingSystem()
 {
-    //boundingBoxShaderProgram_.loadShaderProgram("boundingbox");
-    //boundingSphereShaderProgram_.loadShaderProgram("boundingsphere");
-
     windowSize_ = ProgramVariables::getWindowSize();
 
     splatRenderers_.push_back(std::make_unique<SquareSplatRenderer>("square_splat"));
@@ -21,6 +21,13 @@ RenderingSystem::RenderingSystem()
     splatRenderers_.push_back(std::make_unique<GaussianSplatRenderer>("gaussian_splat"));
 
     currentSplatRendererIdx_ = 0;
+
+    for (int i = 0; i < maxSvoDepth_; ++i) {
+        uint8_t depth = i + 1;
+        depthTresholds_.push_back(1.0f / std::pow(2, depth));
+    }
+
+    loadVariablesFromJsonFile();
 }
 
 void RenderingSystem::update()
@@ -69,6 +76,7 @@ void RenderingSystem::render()
         return;
     }
     auto& activeCameraComponent = SceneManager::getInstance()->getComponent<CameraComponent>(*activeCamera, CAMERA_COMPONENT_ID);
+    auto& activeCameraTransformComponent = SceneManager::getInstance()->getComponent<TransformComponent>(*activeCamera, TRANSFORM_COMPONENT_ID);
     glm::mat4 projectionMatrix = activeCameraComponent.getProjectionMatrix();
     auto& splatRenderer = splatRenderers_[currentSplatRendererIdx_];
     auto& shaderProgram = splatRenderer->getShaderProgram();
@@ -78,11 +86,16 @@ void RenderingSystem::render()
     shaderProgram.setUniform("sunLight.ambientIntensity", sunLightAmbientIntensity_);
     shaderProgram.setUniform("P", projectionMatrix);
     shaderProgram.setUniform("splatSize", splatSize_);
+    shaderProgram.setUniform("cullInvisibleFaces", cullInvisibleFaces_);
 
     for (auto entity : entities_)
     {
         auto& transformComponent = sceneManager->getComponent<TransformComponent>(entity, TRANSFORM_COMPONENT_ID);
         auto& graphicsComponent = sceneManager->getComponent<GraphicsComponent>(entity, GRAPHICS_COMPONENT_ID);
+        if (autoLod_)
+        {
+            performLod(*activeCamera, transformComponent, graphicsComponent);
+        }
         if (!graphicsComponent.isVisible())
             continue;
         shaderProgram.setUniform("splatColorMultiplier", graphicsComponent.getColor());
@@ -129,7 +142,8 @@ void RenderingSystem::globalFrustumCullingFunction()
             if (entityBoundingSphere.intersects(cameraBoundingCone)) {
                 graphicsComponent.setVisible(true);
                 ++nVisibleObjects_;
-            } else {
+            }
+            else {
                 graphicsComponent.setVisible(false);
             }
         }
@@ -140,54 +154,57 @@ void RenderingSystem::globalFrustumCullingFunction()
     }
 }
 
-void RenderingSystem::renderBoundingBoxes()
+void RenderingSystem::performLod(EntityId activeCamera, TransformComponent& transformComponent, GraphicsComponent& graphicsComponent)
 {
-    //auto activeScene = SceneManager::getInstance()->getActiveScene();
-    //World& world = activeScene->getWorld();
-    //auto& entities = world.getEntities();
-    //auto activeCamera = activeScene->getActiveCamera();
-    //auto& activeCameraComponent = activeCamera->getCameraComponent();
-    //glm::mat4 projectionMatrix = activeCameraComponent->getProjectionMatrix();
+    // This code transforms the (-1, 0) and (1, 0) NDC points to a vector which is
+    // aligned with the view. Then the distance from cameraEye to voxelPos is calculated.
+    // The distance, cameraEye and calculated vector are used to calculate two positions,
+    // on the left and right faces of the frustum. This is then divided by the screen width,
+    // and compared to the depthTresholds_ array (which gives us the LOD we need).
+    // Thanks to this, the chosen LOD should give us voxel sizes smaller than a pixel (if such deep LOD exists).
+    auto& activeCameraComponent = SceneManager::getInstance()->getComponent<CameraComponent>(activeCamera, CAMERA_COMPONENT_ID);
+    auto& activeCameraTransformComponent = SceneManager::getInstance()->getComponent<TransformComponent>(activeCamera, TRANSFORM_COMPONENT_ID);
+    glm::mat4 projectionMatrix = activeCameraComponent.getProjectionMatrix();
+    glm::mat4 MVP = projectionMatrix * activeCameraComponent.getViewMatrix();
+    glm::mat4 inverseMVP = glm::inverse(MVP);
 
-    //boundingBoxShaderProgram_.useProgram();
-    //for (auto& entity : entities)
-    //{
-    //    auto& transformComponent = entity->getTransformComponent();
-    //    auto& graphicsComponent = entity->getGraphicsComponent();
-    //    if (transformComponent && graphicsComponent && activeCamera)
-    //    {
-    //        if (!graphicsComponent->isVisible()) continue;
-    //        boundingBoxShaderProgram_.setUniform("MV", transformComponent->getViewModelMatrix());
-    //        boundingBoxShaderProgram_.setUniform("P", projectionMatrix);
-    //        glBindVertexArray(graphicsComponent->getBbVAO());
-    //        glDrawElements(GL_LINE_LOOP, 4, GL_UNSIGNED_SHORT, 0);
-    //        glDrawElements(GL_LINE_LOOP, 4, GL_UNSIGNED_SHORT, (GLvoid*)(4 * sizeof(GLushort)));
-    //        glDrawElements(GL_LINES, 8, GL_UNSIGNED_SHORT, (GLvoid*)(8 * sizeof(GLushort)));
-    //    }
-    //}
+    auto cameraToEntityDistance = glm::distance(activeCameraTransformComponent.getPosition(), transformComponent.getPosition());
+    auto pointA = glm::vec4(-1, 0, 0, 1);
+    auto pointB = glm::vec4(1, 0, 0, 1);
+    glm::vec4 viewVecA = inverseMVP * pointA;
+    glm::vec4 viewVecB = inverseMVP * pointB;
+    glm::vec4 letfFrustumFacePos = glm::vec4(activeCameraTransformComponent.getPosition(), 1) + glm::vec4(viewVecA * cameraToEntityDistance);
+    glm::vec4 rightFrustumFaceBos = glm::vec4(activeCameraTransformComponent.getPosition(), 1) + glm::vec4(viewVecB * cameraToEntityDistance);
+    auto distance = glm::distance(letfFrustumFacePos, rightFrustumFaceBos) / ProgramVariables::getWindowSize().first;
+
+    for (int i = 0; i < depthTresholds_.size(); ++i)
+    {
+        int depth = i + 1;
+        if (distance > depthTresholds_[i] * transformComponent.getScale())
+        {
+            graphicsComponent.setLod(depth);
+            break;
+        }
+    }
 }
 
-void RenderingSystem::renderBoundingSpheres()
+void RenderingSystem::loadVariablesFromJsonFile()
 {
-    //auto activeScene = SceneManager::getInstance()->getActiveScene();
-    //World& world = activeScene->getWorld();
-    //auto& entities = world.getEntities();
-    //auto activeCamera = activeScene->getActiveCamera();
-    //auto& activeCameraComponent = activeCamera->getCameraComponent();
-    //glm::mat4 projectionMatrix = activeCameraComponent->getProjectionMatrix();
+    nlohmann::json configJson;
+    std::ifstream i("../data/config.json");
+    i >> configJson;
+    cullInvisibleFaces_ = configJson["cullInvisibleFaces"].get<bool>();
+    autoLod_ = configJson["autoLevelOfDetail"].get<bool>();
+}
 
-    //boundingSphereShaderProgram_.useProgram();
-    //for (auto& entity : entities)
-    //{
-    //    auto& transformComponent = entity->getTransformComponent();
-    //    auto& graphicsComponent = entity->getGraphicsComponent();
-    //    if (transformComponent && graphicsComponent && activeCamera)
-    //    {
-    //        if (!graphicsComponent->isVisible()) continue;
-    //        boundingSphereShaderProgram_.setUniform("MV", transformComponent->getViewModelMatrix());
-    //        boundingSphereShaderProgram_.setUniform("P", projectionMatrix);
-    //        glBindVertexArray(graphicsComponent->getBsVAO());
-    //        glDrawElements(GL_LINE_LOOP, graphicsComponent->getBoundingSphereElements().size(), GL_UNSIGNED_SHORT, 0);
-    //    }
-    //}
+void RenderingSystem::saveVariablesToConfigFile()
+{
+    nlohmann::json configJson;
+    std::ifstream i("../data/config.json");
+    i >> configJson;
+    configJson["cullInvisibleFaces"] = (bool) cullInvisibleFaces_;
+    configJson["autoLevelOfDetail"] = (bool) autoLod_;
+    i.close();
+    std::ofstream o("../data/config.json");
+    o << std::setw(4) << configJson << std::endl;
 }

@@ -24,6 +24,5 @@ private:
     glm::vec3 position_;
     glm::quat quaternion_;
 
-    glm::mat4 modelMatrix_;
     glm::mat4 viewModelMatrix_;
 };
