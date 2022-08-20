@@ -57,14 +57,20 @@ void SceneManager::activateScene(std::string sceneName)
 void SceneManager::loadEntityTypes()
 {
     std::string octreeFilesPath("../data/svo/");
-    std::string extension(".octree");
-    for (auto& p : std::filesystem::recursive_directory_iterator(octreeFilesPath))
+    std::string searchedForFileSuffix("_2.octree");
+    for (auto& svoDir : std::filesystem::directory_iterator(octreeFilesPath))
     {
-        if (p.path().extension() == extension)
+        for (auto& svoFile : std::filesystem::recursive_directory_iterator(svoDir.path()))
         {
-            EntityType entityType{ "svo", "", 0.0f };
-            std::string fileNameWithoutExtension = p.path().stem().string();
-            addEntityType(fileNameWithoutExtension, entityType);
+            std::string svoFilename = svoFile.path().filename().string();
+            if (svoFilename.substr(svoFilename.size() - searchedForFileSuffix.size()) == searchedForFileSuffix)
+            {
+                std::string delimiter = "_";
+                std::string svoName = svoFilename.substr(0, svoFilename.rfind(delimiter));
+                //std::string svoDepth = svoFilename.substr(svoFilename.rfind(delimiter), svoFilename.size());
+                EntityType entityType{ "svo", "", 0.0f };
+                addEntityType(svoName, entityType);
+            }
         }
     }
 
@@ -95,9 +101,11 @@ void SceneManager::loadSceneFromJsonFile(std::string sceneName)
                 newGraphicsComponent = std::make_unique<GraphicsComponent>();
                 *newGraphicsComponent = loadedGraphicsComponents_[entityTypeName];
                 newGraphicsComponent->setColor(glm::vec4(x["color"][0], x["color"][1], x["color"][2], x["color"][3]));
+                newGraphicsComponent->setLod(x["lod"]);
             }
             else {
                 newGraphicsComponent = std::make_unique<GraphicsComponent>(entityTypeName, glm::vec4(x["color"][0], x["color"][1], x["color"][2], x["color"][3]));
+                newGraphicsComponent->setLod(x["lod"]);
                 loadedGraphicsComponents_[entityTypeName] = *newGraphicsComponent;
             }
         }
@@ -123,6 +131,7 @@ void SceneManager::saveActiveScene()
             auto& graphicsComponent = getComponent<GraphicsComponent>(entity, GRAPHICS_COMPONENT_ID);
             auto& color = graphicsComponent.getColor();
             outEntityJson["color"] = { color[0], color[1], color[2], color[3] };
+            outEntityJson["lod"] = graphicsComponent.getLod();
         }
         if (entityManager_->getComponentSignature(entity).test(TRANSFORM_COMPONENT_ID)) {
             auto& transformComponent = getComponent<TransformComponent>(entity, TRANSFORM_COMPONENT_ID);

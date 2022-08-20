@@ -63,6 +63,7 @@ void GuiSystem::render()
     if (ImGui::CollapsingHeader("Info", ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::Text("FPS: %.0f", ImGui::GetIO().Framerate);
+        ImGui::Text("Frame time: %.2f ms", 1000.0f / ImGui::GetIO().Framerate);
         int nVisibleEntities = 0;
         for (auto& entity : entities_)
         {
@@ -74,6 +75,7 @@ void GuiSystem::render()
         if (ImGui::Button("Save"))
         {
             SceneManager::getInstance()->saveActiveScene();
+            renderingSystem->saveVariablesToConfigFile();
         }
     }
     if (ImGui::CollapsingHeader("Actions", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -89,11 +91,12 @@ void GuiSystem::render()
         ImGui::Columns(1);
         ImGui::Separator();
         ImGui::Text("Entities");
-        ImGui::Columns(8);
+        ImGui::Columns(9);
         ImGui::Separator();
         ImGui::Text("ID"); ImGui::NextColumn();
         ImGui::Text("Name"); ImGui::NextColumn();
         ImGui::Text("Color"); ImGui::NextColumn();
+        ImGui::Text("LOD"); ImGui::NextColumn();
         ImGui::Text("Scale"); ImGui::NextColumn();
         ImGui::Text("x"); ImGui::NextColumn();
         ImGui::Text("y"); ImGui::NextColumn();
@@ -110,6 +113,24 @@ void GuiSystem::render()
             ImGui::NextColumn();
             renderEntityColorPicker(entity);
             ImGui::NextColumn();
+
+            ImGui::SameLine(5.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+            if (ImGui::ArrowButton(std::string("##left" + std::to_string(entity)).c_str(), ImGuiDir_Left))
+            {
+                graphicsComponent.decreaseLevelOfDetail();
+                renderingSystem->calculateTotalVoxelsNumber();
+            }
+            ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+            if (ImGui::ArrowButton(std::string("##right" + std::to_string(entity)).c_str(), ImGuiDir_Right))
+            {
+                graphicsComponent.increaseLevelOfDetail();
+                renderingSystem->calculateTotalVoxelsNumber();
+            }
+            ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+            auto levelOfDetail = graphicsComponent.getLevelOfDetail();
+            ImGui::Text("%s", std::to_string(levelOfDetail).c_str());
+            ImGui::NextColumn();
+
             static ImGuiSliderFlags flags = ImGuiSliderFlags_None;
             float scale = transformComponent.getScale();
             if (ImGui::DragFloat(std::string("##scale" + std::to_string(entity)).c_str(), &scale, 1.0f, 1, 100, "%.0f", flags)) {
@@ -146,9 +167,19 @@ void GuiSystem::render()
             static float cameraSpeed = cameraComponent.getInitialSpeed();
             ImGui::Text("Camera speed:");
             ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
-            if (ImGui::SliderFloat("##camera_speed_slider", &cameraSpeed, 1.0f, 100.0f, "%.3f", flags))
+            if (ImGui::SliderFloat("##camera_speed_slider", &cameraSpeed, 0.1f, 100.0f, "%.1f", flags))
             {
                 cameraComponent.setSpeed(cameraSpeed);
+            }
+            static bool cullInvisibleFaces = renderingSystem->getCullInvisibleFaces();
+            if (ImGui::Checkbox("Cull invisible faces", &cullInvisibleFaces))
+            {
+                renderingSystem->setCullInvisibleFaces(cullInvisibleFaces);
+            }
+            static bool autoLod = renderingSystem->getAutoLod();
+            if (ImGui::Checkbox("Auto LOD", &autoLod))
+            {
+                renderingSystem->setAutoLod(autoLod);
             }
         }
     }

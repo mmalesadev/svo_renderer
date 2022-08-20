@@ -23,7 +23,7 @@ void CameraComponent::activate(TransformComponent& transformComponent)
     up_ = glm::toMat3(transformComponent.getQuaternion()) * glm::vec3(0, 1, 0);
     setViewMatrix(transformComponent.getPosition(), transformComponent.getPosition() + direction_, up_);
 
-    setPerspectiveMatrix(45.0f, (float)windowWidth_ / (float)windowHeight_, 0.2f, 4000.0f);
+    setPerspectiveMatrix(45.0f, (float)windowWidth_ / (float)windowHeight_, 0.001f, 10000.0f);
 
     updateBoundingShapes(transformComponent);
 }
@@ -40,7 +40,7 @@ void CameraComponent::update(TransformComponent& transformComponent)
 
 void CameraComponent::setPerspectiveMatrix(float FoV, float ratio, float zNear, float zFar)
 {
-    projectionMatrix_ = glm::perspective(FoV, ratio, zNear, zFar  );
+    projectionMatrix_ = glm::perspective(FoV, ratio, zNear, zFar);
     FoV_ = FoV;
     ratio_ = ratio;
     near_ = zNear;
