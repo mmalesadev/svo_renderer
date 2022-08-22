@@ -77,6 +77,12 @@ void GuiSystem::render()
             SceneManager::getInstance()->saveActiveScene();
             renderingSystem->saveVariablesToConfigFile();
         }
+        ImGui::SameLine();
+        if (ImGui::Button("Save metrics"))
+        {
+            SceneManager::getInstance()->saveActiveScene();
+            renderingSystem->saveMetrics(ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+        }
     }
     if (ImGui::CollapsingHeader("Actions", ImGuiTreeNodeFlags_DefaultOpen)) {
         static int chosen_entity_type_idx = -1;
@@ -118,13 +124,11 @@ void GuiSystem::render()
             if (ImGui::ArrowButton(std::string("##left" + std::to_string(entity)).c_str(), ImGuiDir_Left))
             {
                 graphicsComponent.decreaseLevelOfDetail();
-                renderingSystem->calculateTotalVoxelsNumber();
             }
             ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
             if (ImGui::ArrowButton(std::string("##right" + std::to_string(entity)).c_str(), ImGuiDir_Right))
             {
                 graphicsComponent.increaseLevelOfDetail();
-                renderingSystem->calculateTotalVoxelsNumber();
             }
             ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
             auto levelOfDetail = graphicsComponent.getLevelOfDetail();

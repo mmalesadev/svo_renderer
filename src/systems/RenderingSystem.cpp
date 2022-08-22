@@ -208,3 +208,23 @@ void RenderingSystem::saveVariablesToConfigFile()
     std::ofstream o("../data/config.json");
     o << std::setw(4) << configJson << std::endl;
 }
+
+void RenderingSystem::saveMetrics(float fps, float frame_time)
+{
+    nlohmann::json renderingSystemMetricsJson;
+    std::ifstream i("../data/rendering_system_metrics.json");
+    i >> renderingSystemMetricsJson;
+    if (!cullInvisibleFaces_) {
+        renderingSystemMetricsJson["total_voxels"].push_back(nTotalVoxels_);
+        renderingSystemMetricsJson["fps"].push_back(fps);
+        renderingSystemMetricsJson["frame_time"].push_back(frame_time);
+    }
+    else
+    {
+        renderingSystemMetricsJson["fps_culling"].push_back(fps);
+        renderingSystemMetricsJson["frame_time_culling"].push_back(frame_time);
+    }
+    i.close();
+    std::ofstream o("../data/rendering_system_metrics.json");
+    o << std::setw(4) << renderingSystemMetricsJson << std::endl;
+}

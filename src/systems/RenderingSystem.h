@@ -24,6 +24,7 @@ public:
     GLboolean getAutoLod() { return autoLod_; }
     GLboolean getCullInvisibleFaces() { return cullInvisibleFaces_; }
     void saveVariablesToConfigFile();
+    void saveMetrics(float fps, float frame_time);
 
 private:
     void render();

@@ -13,6 +13,8 @@ Either download zipped release and run the program (you will need Visual C++ Red
 - SPace - move up
 - Q - roll left
 - E - roll right
+- R - toggle free roam
+- F - Hide/show GUI
 
 # Requirements
 - Microsoft Visual Studio 2015
