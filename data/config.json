@@ -12,5 +12,5 @@
         "TOGGLE_GUI": "F"
     },
     "autoLevelOfDetail": false,
-    "cullInvisibleFaces": true
+    "cullInvisibleFaces": false
 }

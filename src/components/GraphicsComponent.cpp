@@ -7,7 +7,6 @@
 GraphicsComponent::GraphicsComponent() :
     boundingSphereRadius_(0.0f), visible_(true)
 {
-
     auto renderingSystem = SceneManager::getInstance()->getRenderingSystem();
     maxSvoDepth_ = renderingSystem->getMaxSvoDepth();
     currentSvoLodIdx_ = maxSvoDepth_ - 1;
@@ -67,22 +66,28 @@ GraphicsComponent::GraphicsComponent(std::string name, glm::vec4 color) : Graphi
     boundingSphereRadius_ = glm::length(midPoint - glm::vec3(maxX, maxY, maxZ));
 }
 
+void GraphicsComponent::setLod(uint8_t lod)
+{
+    currentSvoLodIdx_ = lod - 1;
+    SceneManager::getInstance()->getRenderingSystem()->calculateTotalVoxelsNumber();
+}
+
 void GraphicsComponent::decreaseLevelOfDetail()
 {
     if (currentSvoLodIdx_ == 0)
     {
-        currentSvoLodIdx_ = maxSvoDepth_ - 1;
+        setLod(maxSvoDepth_);
         return;
     }
-    currentSvoLodIdx_ -= 1;
+    setLod(getLod() - 1);
 }
 
 void GraphicsComponent::increaseLevelOfDetail()
 {
     if (currentSvoLodIdx_ == maxSvoDepth_ - 1)
     {
-        currentSvoLodIdx_ = 0;
+        setLod(1);
         return;
     }
-    currentSvoLodIdx_ += 1;
+    setLod(getLod() + 1);
 }

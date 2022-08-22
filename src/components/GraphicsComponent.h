@@ -19,7 +19,7 @@ public:
     glm::vec4 getColor() const { return color_; }
     uint8_t getLod() const { return currentSvoLodIdx_ + 1; }
     void setColor(glm::vec4 color) { color_ = color; }
-    void setLod(uint8_t lod) { currentSvoLodIdx_ = lod - 1; }
+    void setLod(uint8_t lod);
     float getBoundingSphereRadius() { return boundingSphereRadius_; }
 
     unsigned int getGridLength() const { return octreeFiles_[currentSvoLodIdx_]->getHeader().gridLength; }

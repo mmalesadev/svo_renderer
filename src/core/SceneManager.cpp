@@ -157,7 +157,7 @@ void SceneManager::addNewEntity(std::string entityTypeName)
     std::unique_ptr<GraphicsComponent> newGraphicsComponent;
     std::unique_ptr<CameraComponent> newCameraComponent;
 
-    newTransformComponent = std::make_unique<TransformComponent>(50.0f, glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
+    newTransformComponent = std::make_unique<TransformComponent>(1.0f, glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
     auto& entityType = entityTypes_[entityTypeName];
     if (entityType.graphicsComponent == "svo")
     {
